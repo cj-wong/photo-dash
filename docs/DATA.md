@@ -2,7 +2,7 @@
 
 ## Summary
 
-The data JSON has a specific format with some options in the `"data"` key. It always contains the name of the module (`"module"`) and title of the data (`"title"`).
+The data JSON has a specific format with some options in the `"sections"` key. It always contains the name of the module (`"module"`) and title of the data (`"title"`).
 
 For more information, view the [example.json](resources/example.json). The example contains values similar to the accepted values.
 
@@ -16,11 +16,11 @@ This value should be in the format `photo-dash-module`.
 
 This value should represent the title of the data, not necessarily the name of the module. The title will be present at the top of the resulting image.
 
-### "data"
+### "sections"
 
-This should contain all subsections (elements) of the image as desired.
+This should contain all subsections (elements) of the image as desired. Sections are created in the order they're read, so first sections are created near the top left.
 
-## Detailed Data
+## Detailed Section
 
 ### "type"
 
