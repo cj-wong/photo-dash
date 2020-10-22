@@ -1,0 +1,18 @@
+{
+    "module": "photo-dash-module",
+    "title": "photo-dash Module Title",
+    "data": [
+        {
+            "type": "text",
+            "color": "#RRGGBB",
+            "value": "This is an example text"
+        },
+        {
+            "type": "gauge",
+            "color": ["#000000", "#111111"],
+            "range": [0, 10, 20],
+            "value": 
+        }
+
+    ]
+}
