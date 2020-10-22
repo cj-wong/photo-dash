@@ -46,3 +46,5 @@ except CONFIG_ERRORS:
     LOGGER.warning(
         f'Could not load width or length. Defaulting to {WIDTH}x{LENGTH}'
         )
+
+CANVAS = (WIDTH, LENGTH)
