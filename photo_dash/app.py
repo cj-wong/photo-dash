@@ -1,12 +1,12 @@
 import pendulum
 from flask import Flask, request
-from flask_restful import API, Resource
+from flask_restful import Api, Resource
 
 from photo_dash import image
 
 
 APP = Flask(__name__)
-API = API(APP)
+API = Api(APP)
 
 
 class PhotoDash(Resource):
