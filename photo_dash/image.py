@@ -31,11 +31,13 @@ class DashImg:
     y: int = 0  # This should not be initialized.
 
     SPACER = 1
-    FONT = 'DejaVuSans.ttf'
+    FONT_NAME = 'DejaVuSans.ttf'
 
     TITLE_COLOR = '#FFFFFF'
     TITLE_SIZE = 20
-    TITLE_FONT = ImageFont.truetype(font=FONT, size=TITLE_SIZE)
+    FONT = ImageFont.truetype(font=FONT_NAME)
+
+    SECTION_SIZE = 16
 
     def _next_y(self, delta: int) -> None:
         """Get the next value for y given a delta.
@@ -50,15 +52,32 @@ class DashImg:
 
     def create(self) -> None:
         """Create a new image given parameters."""
-        with Image.new('RGB', config.CANVAS) as im:
-            draw = ImageDraw.Draw(im)
-            draw.text(
-                (0, 0),
-                self.title,
-                fill=self.TITLE_COLOR,
-                font=self.TITLE_FONT
-                )
-            self._next_y(self.title_size)
+        with Image.new('RGB', config.CANVAS) as self.im:
+            self.draw = ImageDraw.Draw(self.im)
+            self.create_text(self.title, self.TITLE_COLOR, self.TITLE_SIZE)
             for section in self.sections:
-                pass
-            im.save(f'{self.module}.jpg')
+                try:
+                    section_type = section['type']
+                    if section_type == 'text':
+                        color = section['color']
+                        text = section['value']
+                        self.create_text(text, color, self.SECTION_SIZE)
+                except KeyError as e:
+                    config.LOGGER.warning(
+                        'Could not determine type of section. Skipping.'
+                        )
+                    config.LOGGER.warning(f'Module: {self.module}')
+                    config.LOGGER.warning(f'More info: {e}')
+                    continue
+            self.im.save(f'{self.module}.jpg')
+
+    def create_text(self, text: str, color: str, font_size: int) -> None:
+        """Create text and insert into drawing."""
+        self.FONT.size = font_size
+        self.draw.text(
+            (0, self.y),
+            text,
+            fill=color,
+            font=self.FONT,
+            )
+        self._next_y(font_size)
