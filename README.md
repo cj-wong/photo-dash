@@ -19,7 +19,11 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPI]) to serve a
 
 ## Usage
 
-TODO
+0. Setup [config.json](config.json.example) by copying the example file and renaming it. While the file isn't necessary, the default width (480) and length (234) will be used if the following aren't met:
+    - file doesn't exist
+    - both `"width"` and `"length"` aren't filled in
+    - both values aren't integers
+1. TODO
 
 ## Requirements
 
