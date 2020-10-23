@@ -37,9 +37,13 @@ try:
     WIDTH = CONFIG['width']
     LENGTH = CONFIG['length']
 except (FileNotFoundError, json.decoder.JSONDecodeError) as e:
-    LOGGER.error('config.json doesn\'t exist or is malformed.')
-    LOGGER.error(f'More information: {e}')
-    raise e
+    LOGGER.warning('config.json doesn\'t exist or is malformed.')
+    LOGGER.warning(f'More information: {e}')
+    WIDTH = DEFAULT_WIDTH
+    LENGTH = DEFAULT_LENGTH
+    LOGGER.warning(
+        f'Could not load width or length. Defaulting to {WIDTH}x{LENGTH}'
+        )
 except CONFIG_ERRORS:
     WIDTH = DEFAULT_WIDTH
     LENGTH = DEFAULT_LENGTH
