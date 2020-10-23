@@ -7,4 +7,6 @@
 *.pyc
 
 # Project-specific files
+photo-dash.log
+photo-dash.log.[1-5]
 gunicorn.conf.py
