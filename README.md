@@ -14,16 +14,20 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPI]) to serve a
 
 - **Resolution:** 480x234
 - Does not appear to support PNG *(tested: transparent PNG, JPG)*.
+- Images smaller than the given resolution are centered on both axes.
 - Images slightly larger than the given resolution *(tested: 1000x1000)* will be scaled down and possibly stretched along one axis if not the same aspect ratio.
 - Images much larger than the given resolution *(tested: 12000x1000)* will be ignored. This may also be restricted by image size.
+- A slideshow option is available by default. This is required for full functionality, even if not using the exact photo frame.
+- Directories seem to be supported. As FAT32 systems do not support sym-linking, files must be copied over. Specify the output directory in the configuration.
+- Images appear to stay in memory on the photo frame, especially during syncs. If a problem occurs with the gadget, the photo frame will not remove the old images. This may be important for debugging.
 
 ## Usage
 
-0. Setup [config.json](config.json.example) by copying the example file and renaming it. While the file isn't necessary, the default width (480) and length (234) will be used if the following aren't met:
+1. Setup [config.json](config.json.example) by copying the example file and renaming it. If either `"length"` or `"width"` is not defined, a default value will be used (480 for width, 234 for length).
     - file doesn't exist
     - both `"width"` and `"length"` aren't filled in
     - both values aren't integers
-1. TODO
+2. TODO
 
 ## Requirements
 

@@ -1,6 +1,7 @@
 import json
 import logging
 import logging.handlers
+from pathlib import Path
 
 
 LOGGER = logging.getLogger('photo-dash')
@@ -25,10 +26,13 @@ CH.setFormatter(FORMATTER)
 LOGGER.addHandler(FH)
 LOGGER.addHandler(CH)
 
-CONFIG_ERRORS = (KeyError, TypeError, ValueError)
-
-DEFAULT_WIDTH = 480
-DEFAULT_LENGTH = 234
+CONFIG_LOAD_ERRORS = (
+    FileNotFoundError,
+    KeyError,
+    TypeError,
+    ValueError,
+    json.decoder.JSONDecodeError,
+    )
 
 
 try:
@@ -36,19 +40,15 @@ try:
         CONFIG = json.load(f)
     WIDTH = CONFIG['width']
     LENGTH = CONFIG['length']
-except (FileNotFoundError, json.decoder.JSONDecodeError) as e:
-    LOGGER.warning('config.json doesn\'t exist or is malformed.')
-    LOGGER.warning(f'More information: {e}')
-    WIDTH = DEFAULT_WIDTH
-    LENGTH = DEFAULT_LENGTH
-    LOGGER.warning(
-        f'Could not load width or length. Defaulting to {WIDTH}x{LENGTH}'
-        )
-except CONFIG_ERRORS:
-    WIDTH = DEFAULT_WIDTH
-    LENGTH = DEFAULT_LENGTH
-    LOGGER.warning(
-        f'Could not load width or length. Defaulting to {WIDTH}x{LENGTH}'
-        )
+    DEST = Path(CONFIG['destination'])
+    if not DEST.exists():
+        raise RuntimeError
+except CONFIG_LOAD_ERRORS as e:
+    LOGGER.error('config.json doesn\'t exist or is malformed.')
+    LOGGER.error(f'More information: {e}')
+    raise e
+except RuntimeError as e:
+    LOGGER.error(f'{DEST} is not a valid destination. Please specify a path.')
+    raise e
 
 CANVAS = (WIDTH, LENGTH)
