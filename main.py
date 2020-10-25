@@ -1,5 +1,5 @@
-from photo_dash import config, app
-from app import APP
+from photo_dash import config
+from photo_dash.app import APP
 
 
 if __name__ == '__main__':
