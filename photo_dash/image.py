@@ -136,12 +136,15 @@ class DashImg:
             bool: whether the sections will fit in the image or not
 
         """
-        space = sum(
-            [
-                self.SECTION_SPACING[section['type']]
-                for section in self.sections
-                ]
-            ) + self.SPACER * (len(self.sections) - 1)
+        space = 0
+        for section in self.sections:
+            if section['type'] == 'text':
+                lines = len(wrap(section['value'], width=self.MAX_C_PER_LINE))
+                space += lines * self.SECTION_SPACING[section['type']]
+            else:
+                space += self.SECTION_SPACING[section['type']]
+            space += self.SPACER
+        space -= self.SPACER
         free_space = (
             config.LENGTH
             - (self.TITLE_SIZE + self.SPACER)
