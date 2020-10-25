@@ -35,13 +35,22 @@ class DashImg:
         module (str): the name of the module the image represents
         title (str): title of the image; goes at the top of the image
         sections (SECTIONS): a response given to the endpoint
-        FONT (str): the name of the font to use for all text elements
-        TEXT_COLOR (str): color for the title on an image ('#FFFFF')
-        TITLE_SIZE (int): font size of the title (20)
-        TITLE_FONT (ImageFont.FreeTypeFont): font & size for the title
         SPACER (int): how much to space rows of elements
+        FONT (str): the name of the font to use for all text elements
+        TEXT_COLOR (str): color for the title on an image ('#FFFFFF')
+        TITLE_SIZE (int): font size of the title (20)
+        TITLE_FONT (T_FONT): font & size for the title
+        SECTION_SIZE (int): font size for sections (16)
+        SECTION_FONT (T_FONT): font & size for sections
+        FOOTER_SIZE (int): font size of the footer (20)
+        FOOTER_FONT (T_FONT): font & size for the footer
+        MAX_C_PER_LINE (int): maximum characters allowed per line
+        SECTION_SPACING (Dict[str, int]): how much spacing each section
+            creates; e.g. text only needs 1 spacing per line
 
     """
+
+    # dataclass attributes
 
     module: str
     title: str
@@ -49,6 +58,8 @@ class DashImg:
     # The following should not be initialized.
     y: int = 0
     dt: pendulum.datetime = pendulum.now()
+
+    # Other attributes
 
     SPACER = 5
     FONT = 'DejaVuSansMono.ttf'
@@ -132,7 +143,14 @@ class DashImg:
         return free_space > space
 
     def create_text(self, text: str, color: str, font: T_FONT) -> None:
-        """Create text and insert into drawing."""
+        """Create text and insert into drawing.
+
+        Args:
+            text (str): contents of the string
+            color (str): color in hex format
+            font (T_FONT): the font & size used for the text
+
+        """
         for line in wrap(text, width=self.MAX_C_PER_LINE):
             self.draw.text(
                 (0, self.y),
