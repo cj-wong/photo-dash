@@ -20,9 +20,12 @@ class PhotoDash(Resource):
         """
         module = request.form['module']
         title = request.form['title']
-        sections = request.form['data']
+        sections = request.form['sections']
         img = image.DashImg(module, title, sections)
-        img.create()
+        try:
+            img.create()
+        except image.TooManySections:
+            return 401
         return 201
 
 
