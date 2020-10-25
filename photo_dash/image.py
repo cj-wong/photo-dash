@@ -45,6 +45,10 @@ class DashImg:
         FOOTER_SIZE (int): font size of the footer (20)
         FOOTER_FONT (T_FONT): font & size for the footer
         MAX_C_PER_LINE (int): maximum characters allowed per line
+        GAUGE_WIDTH (int): how long the gauge bar should be
+        GAUGE_OFFSET (int): how far from the left should the bar start;
+            this number ideally should be (1 - ratio) // 2, where
+            ratio is the decimal that was used to create GAUGE_WIDTH
         SECTION_SPACING (Dict[str, int]): how much spacing each section
             creates; e.g. text only needs 1 spacing per line
 
@@ -75,6 +79,9 @@ class DashImg:
     # 48 chars could fit on one line. As such, MAX_C_PER_LINE can be scaled
     # by dividing configured width by 10.
     MAX_C_PER_LINE = config.WIDTH // 10
+
+    GAUGE_WIDTH = int(0.9 * config.WIDTH)
+    GAUGE_OFFSET = int(0.05 * config.WIDTH)
 
     SECTION_SPACING = {
         'text': 1,
@@ -160,6 +167,19 @@ class DashImg:
                 )
             self._next_y(font.size)
 
+    def create_gauge(
+        self, value: int, values: List[int], colors: List[str]
+            ) -> None:
+        """Create gauge given a value and marks (values).
+
+        Args:
+            value (int): the reading to use
+            values (List[int]): numeric marks along the gauge
+            colors (List[int]): color to paint sections between marks
+
+        """
+        pass
+
     def create_footer(self) -> None:
         """Create footer (text) for this image.
 
@@ -168,7 +188,7 @@ class DashImg:
         """
         message = f'Generated at: {self.dt.to_datetime_string()}'
         self.draw.text(
-            (config.WIDTH, config.LENGTH),
+            config.CANVAS,
             message,
             fill=self.TEXT_COLOR,
             font=self.FOOTER_FONT,
