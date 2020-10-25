@@ -65,7 +65,7 @@ class DashImg:
 
     # Other attributes
 
-    SPACER = 5
+    SPACER = 10
     FONT = 'DejaVuSansMono.ttf'
 
     TEXT_COLOR = '#FFFFFF' # Does not apply to sections
@@ -82,6 +82,14 @@ class DashImg:
 
     GAUGE_WIDTH = int(0.9 * config.WIDTH)
     GAUGE_OFFSET = int(0.05 * config.WIDTH)
+    GAUGE_VALUE_STROKE = 2
+    GAUGE_VALUE_STROKE_COLOR = '#808080'
+    GAUGE_VALUE_FONT = ImageFont.truetype(
+        font=FONT,
+        size=SECTION_SIZE,
+        stroke_width=GAUGE_VALUE_STROKE,
+        stroke_fill=GAUGE_VALUE_STROKE_COLOR,
+        )
 
     SECTION_SPACING = {
         'text': 1,
@@ -119,6 +127,11 @@ class DashImg:
                         color = section['color']
                         text = section['value']
                         self.create_text(text, color, self.SECTION_FONT)
+                    elif section_type == 'gauge':
+                        colors = section['color']
+                        values = section['range']
+                        value = section['value']
+                        self.create_gauge(value, values, colors)
                 except KeyError as e:
                     config.LOGGER.warning(
                         'Could not determine type of section. Skipping.'
@@ -181,7 +194,66 @@ class DashImg:
             colors (List[int]): color to paint sections between marks
 
         """
-        pass
+        sort_values = sorted(values)
+        if values != sort_values:
+            config.LOGGER.warning('The values were unsorted.')
+            config.LOGGER.warning(f'Module: {self.module}')
+            config.LOGGER.warning(f'Values: {values}')
+        end_a = sort_values[0]
+        end_b = sort_values[-1]
+
+        # The first marker will use the default text color.
+        colors.insert(0, self.TEXT_COLOR)
+
+        x0 = self.GAUGE_OFFSET
+        y0 = self.y + self.SECTION_FONT.size + self.SPACER
+        x1 = x0 + self.GAUGE_WIDTH
+        y1 = y0 + self.SECTION_FONT.size
+
+        # Draw the gauge first
+        for val, color in zip(values, colors):
+            offset = self.get_gauge_offset(val, end_a, end_b)
+            self.draw.text(
+                (offset, self.y),
+                str(value),
+                fill=color,
+                font=self.SECTION_FONT,
+                anchor='mt',
+                )
+            self.draw.rectangle(
+                [(offset, y0), (x1, y1)],
+                fill=color,
+                )
+
+        offset = self.get_gauge_offset(value, end_a, end_b)
+        self.draw.text(
+            (offset, self.y),
+            str(value),
+            fill=color,
+            font=self.SECTION_FONT,
+            anchor='mt',
+            )
+
+        self._next_y(2 * self.SECTION_FONT.size + self.SPACER)
+
+    def get_gauge_offset(self, value: int, end_a: int, end_b: int) -> int:
+        """Get the current gauge offset.
+
+        end_a <= value <= end_b
+
+        Args:
+            value (int): the value to measure in gauge
+            end_a (int): the minimum of the gauge
+            end_b (int): the maximum of the gauge
+
+        """
+        length = end_b - end_a
+        return (
+            (value - end_a)
+            * self.GAUGE_WIDTH
+            // length
+            + self.GAUGE_OFFSET
+            )
 
     def create_footer(self) -> None:
         """Create footer (text) for this image.
