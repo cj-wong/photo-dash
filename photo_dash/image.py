@@ -11,6 +11,7 @@ from photo_dash import config
 SECTIONS = Dict[str, Union[str, List[Dict[str, Any]]]]
 T_FONT = ImageFont.FreeTypeFont
 
+
 class TooManySections(BufferError):
     """Too many sections were provided. The image cannot be rendered."""
 
@@ -83,13 +84,8 @@ class DashImg:
     GAUGE_WIDTH = int(0.9 * config.WIDTH)
     GAUGE_OFFSET = int(0.05 * config.WIDTH)
     GAUGE_VALUE_STROKE = 2
-    GAUGE_VALUE_STROKE_COLOR = '#808080'
-    GAUGE_VALUE_FONT = ImageFont.truetype(
-        font=FONT,
-        size=SECTION_SIZE,
-        stroke_width=GAUGE_VALUE_STROKE,
-        stroke_fill=GAUGE_VALUE_STROKE_COLOR,
-        )
+    GAUGE_LINE_WIDTH = 5
+    GAUGE_LINE_COLOR = '#808080'
 
     SECTION_SPACING = {
         'text': 1,
@@ -207,31 +203,40 @@ class DashImg:
 
         x0 = self.GAUGE_OFFSET
         y0 = self.y + self.SECTION_FONT.size + self.SPACER
-        x1 = x0 + self.GAUGE_WIDTH
         y1 = y0 + self.SECTION_FONT.size
+
+        last_x0 = x0
 
         # Draw the gauge first
         for val, color in zip(values, colors):
             offset = self.get_gauge_offset(val, end_a, end_b)
             self.draw.text(
                 (offset, self.y),
-                str(value),
+                str(val),
                 fill=color,
                 font=self.SECTION_FONT,
                 anchor='mt',
                 )
             self.draw.rectangle(
-                [(offset, y0), (x1, y1)],
+                [(last_x0, y0), (offset, y1)],
                 fill=color,
                 )
+            last_x0 = offset
 
         offset = self.get_gauge_offset(value, end_a, end_b)
         self.draw.text(
             (offset, self.y),
             str(value),
-            fill=color,
+            fill=self.TEXT_COLOR,
             font=self.SECTION_FONT,
             anchor='mt',
+            stroke_width=self.GAUGE_VALUE_STROKE,
+            stroke_fill=self.GAUGE_LINE_COLOR,
+            )
+        self.draw.line(
+            [(offset, y0), (offset, y1)],
+            fill=self.GAUGE_LINE_COLOR,
+            width=self.GAUGE_LINE_WIDTH,
             )
 
         self._next_y(2 * self.SECTION_FONT.size + self.SPACER)
