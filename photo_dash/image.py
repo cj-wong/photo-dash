@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import ceil
 from textwrap import wrap
 from typing import Any, Dict, List, Union
 
@@ -80,7 +81,8 @@ class DashImg:
     # For a width of 480, SECTION_SIZE of 16, and using a monospace font,
     # 48 chars could fit on one line. As such, MAX_C_PER_LINE can be scaled
     # by dividing configured width by 10.
-    MAX_C_PER_LINE = config.WIDTH // 10
+    # MAX_C_PER_LINE is then subtracted by 2 H_SPACERs rounded up.
+    MAX_C_PER_LINE = config.WIDTH // 10 - ceil(2 * H_SPACER / 10)
 
     GAUGE_WIDTH = int(0.9 * config.WIDTH)
     GAUGE_OFFSET = int(0.05 * config.WIDTH)
