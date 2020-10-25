@@ -57,6 +57,7 @@ class DashImg:
     TITLE_SIZE = 20
     SECTION_SIZE = 16
     FOOTER_SIZE = 10
+    FOOTER_FONT = ImageFont.truetype(font=FONT, size=FOOTER_SIZE)
     # For a width of 480, SECTION_SIZE of 16, and using a monospace font,
     # 48 chars could fit on one line. As such, MAX_C_PER_LINE can be scaled
     # by dividing configured width by 10.
@@ -147,11 +148,10 @@ class DashImg:
 
         """
         message = f'Generated at: {self.dt.to_datetime_string()}'
-        sized_font = ImageFont.truetype(font=self.FONT, size=self.FOOTER_SIZE)
         self.draw.text(
             (config.WIDTH, config.LENGTH),
             message,
             fill=self.TEXT_COLOR,
-            font=sized_font,
+            font=self.FOOTER_FONT,
             anchor='rs',
             )
