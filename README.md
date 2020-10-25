@@ -23,23 +23,27 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPI]) to serve a
 
 ## Usage
 
-1. Setup [config.json](config.json.example) by copying the example file and renaming it. If either `"length"` or `"width"` is not defined, a default value will be used (480 for width, 234 for length).
-    - file doesn't exist
-    - both `"width"` and `"length"` aren't filled in
-    - both values aren't integers
-2. TODO
+1. Setup [config.json](config.json.example) by copying the example file and renaming it. `"width"` and `"length"` must be integers. `"destination"` must be a string that can be parsed as a path using `pathlib.Path`. (Both relative and absolute paths can work here.)
+2. Run `python photo_dash/app.py`. The endpoint does not do anything on its own; use modules to send data to convert to a `photo-dash` image.
 
 ## Requirements
 
 This code is designed around the following:
 
 - Python 3.7+
-    - TODO
+    - `flask` and `flask-restful` for creating an API endpoint
+    - `gunicorn` to run the API
+    - `pendulum` to determine when an image is created from data
+    - `pillow` for creating dash images
     - other [requirements](requirements.txt)
 
 ## Setup
 
-1. TODO
+Make sure to fill in all the fields in [config.json](config.json.example).
+
+- `"width"`: integer; width of the digital photo frame display, in pixels
+- `"length"`: integer; length of the digital photo frame display, in pixels
+- `"destination"`: string; must be a valid path (relative or absolute) that can be parsed by `pathlib.Path`
 
 ## Disclaimer
 
