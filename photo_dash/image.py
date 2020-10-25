@@ -136,7 +136,7 @@ class DashImg:
                     config.LOGGER.warning(f'More info: {e}')
                     continue
             self.create_footer()
-            self.im.save(f'{self.module}.jpg', quality=85)
+            self.im.save(config.DEST / f'{self.module}.jpg', quality=85)
 
     def sections_fit(self) -> bool:
         """Check whether the sections fit in the image.
