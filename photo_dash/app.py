@@ -30,7 +30,3 @@ class PhotoDash(Resource):
 
 
 API.add_resource(PhotoDash, '/')
-
-
-if __name__ == '__main__':
-    APP.run()
