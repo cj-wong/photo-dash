@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.2] - 2020-10-25
+### Fixed
+- The timestamp is now initialized when `DashImg.create()` is called.
+- The photo frame is somehow scaling images past their intended borders. This has caused text to go offscreen. Now, text elements (including the footer) will have a small offset. Both title and footer will have a small spacer from the top and bottom. All text elements will have a small spacer from the nearest side.
+
 ## [0.1.1] - 2020-10-25
 ### Changed
 - In the API, `"data"` was changed to `"sections"` to conform with the existing file.

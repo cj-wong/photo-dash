@@ -60,13 +60,14 @@ class DashImg:
     module: str
     title: str
     sections: SECTIONS
-    # The following should not be initialized.
+    # y should not be initialized.
     y: int = 0
-    dt: pendulum.datetime = pendulum.now()
 
     # Other attributes
 
     SPACER = 10
+    V_SPACER = 5
+    H_SPACER = 5
     FONT = 'DejaVuSansMono.ttf'
 
     TEXT_COLOR = '#FFFFFF' # Does not apply to sections
@@ -113,6 +114,8 @@ class DashImg:
         if not self.sections_fit():
             raise TooManySections(len(self.sections))
 
+        self.dt = pendulum.now()
+
         with Image.new('RGB', config.CANVAS) as self.im:
             self.draw = ImageDraw.Draw(self.im)
             self.create_text(self.title, self.TEXT_COLOR, self.TITLE_FONT)
@@ -158,6 +161,7 @@ class DashImg:
             config.LENGTH
             - (self.TITLE_SIZE + self.SPACER)
             - (self.FOOTER_SIZE + 2 * self.SPACER) # Add extra padding
+            - (2 * self.V_SPACER) # Additional vertical spacers
             )
         return free_space > space
 
@@ -170,9 +174,11 @@ class DashImg:
             font (T_FONT): the font & size used for the text
 
         """
+        if font == self.TITLE_FONT:
+            self.y += self.V_SPACER
         for line in wrap(text, width=self.MAX_C_PER_LINE):
             self.draw.text(
-                (0, self.y),
+                (self.H_SPACER, self.y),
                 line,
                 fill=color,
                 font=font,
@@ -268,7 +274,7 @@ class DashImg:
         """
         message = f'Generated at: {self.dt.to_datetime_string()}'
         self.draw.text(
-            config.CANVAS,
+            (config.WIDTH - self.H_SPACER, config.LENGTH - self.V_SPACER),
             message,
             fill=self.TEXT_COLOR,
             font=self.FOOTER_FONT,
