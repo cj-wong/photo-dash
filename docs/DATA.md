@@ -32,7 +32,7 @@ This is in the format `#RRGGBB` and will fill the element in that color. If the 
 
 ### "range"
 
-This only applies to gauge elements. It is a list of sorted numbers, with the minimum being the leftmost side while the maximum is the rightmost. All other numbers in the middle serve as partitions.
+This only applies to gauge elements. It is a list of sorted numbers, with the minimum being the leftmost side while the maximum is the rightmost. All other numbers in the middle serve as partitions. **Although the list can be unsorted, note that the program will sort the list destructively. This may negatively affect the color assignment per range.**
 
 ### "value"
 
