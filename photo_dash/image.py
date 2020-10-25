@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from textwrap import wrap
 from typing import Any, Dict, List, Union
 
+import pendulum
 from PIL import Image, ImageDraw, ImageFont
 
 from photo_dash import config
@@ -45,7 +46,9 @@ class DashImg:
     module: str
     title: str
     sections: SECTIONS
-    y: int = 0  # This should not be initialized.
+    # The following should not be initialized.
+    y: int = 0
+    dt: pendulum.datetime = pendulum.now()
 
     SPACER = 5
     FONT = 'DejaVuSansMono.ttf'
@@ -102,6 +105,7 @@ class DashImg:
                     config.LOGGER.warning(f'Module: {self.module}')
                     config.LOGGER.warning(f'More info: {e}')
                     continue
+            self.create_footer()
             self.im.save(f'{self.module}.jpg', quality=85)
 
     def sections_fit(self) -> bool:
@@ -135,3 +139,19 @@ class DashImg:
                 font=sized_font,
                 )
             self._next_y(font_size)
+
+    def create_footer(self) -> None:
+        """Create footer (text) for this image.
+
+        Footers currently only contain the date and time.
+
+        """
+        message = f'Generated at: {self.dt.to_datetime_string()}'
+        sized_font = ImageFont.truetype(font=self.FONT, size=self.FOOTER_SIZE)
+        self.draw.text(
+            (config.WIDTH, config.LENGTH),
+            message,
+            fill=self.TEXT_COLOR,
+            font=sized_font,
+            anchor='rs',
+            )

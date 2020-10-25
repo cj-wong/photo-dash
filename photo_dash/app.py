@@ -1,4 +1,3 @@
-import pendulum
 from flask import Flask, request
 from flask_restful import Api, Resource
 
@@ -19,7 +18,6 @@ class PhotoDash(Resource):
             int: HTTP status code 201
 
         """
-        pendulum.now()
         module = request.form['module']
         title = request.form['title']
         sections = request.form['data']
