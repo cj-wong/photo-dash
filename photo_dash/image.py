@@ -9,7 +9,7 @@ from photo_dash import config
 
 
 SECTIONS = Dict[str, Union[str, List[Dict[str, Any]]]]
-
+T_FONT = ImageFont.FreeTypeFont
 
 class TooManySections(BufferError):
     """Too many sections were provided. The image cannot be rendered."""
@@ -55,7 +55,9 @@ class DashImg:
 
     TEXT_COLOR = '#FFFFFF' # Does not apply to sections
     TITLE_SIZE = 20
+    TITLE_FONT = ImageFont.truetype(font=FONT, size=TITLE_SIZE)
     SECTION_SIZE = 16
+    SECTION_FONT = ImageFont.truetype(font=FONT, size=SECTION_SIZE)
     FOOTER_SIZE = 10
     FOOTER_FONT = ImageFont.truetype(font=FONT, size=FOOTER_SIZE)
     # For a width of 480, SECTION_SIZE of 16, and using a monospace font,
@@ -91,14 +93,14 @@ class DashImg:
 
         with Image.new('RGB', config.CANVAS) as self.im:
             self.draw = ImageDraw.Draw(self.im)
-            self.create_text(self.title, self.TEXT_COLOR, self.TITLE_SIZE)
+            self.create_text(self.title, self.TEXT_COLOR, self.TITLE_FONT)
             for section in self.sections:
                 try:
                     section_type = section['type']
                     if section_type == 'text':
                         color = section['color']
                         text = section['value']
-                        self.create_text(text, color, self.SECTION_SIZE)
+                        self.create_text(text, color, self.SECTION_FONT)
                 except KeyError as e:
                     config.LOGGER.warning(
                         'Could not determine type of section. Skipping.'
@@ -129,17 +131,16 @@ class DashImg:
             )
         return free_space > space
 
-    def create_text(self, text: str, color: str, font_size: int) -> None:
+    def create_text(self, text: str, color: str, font: T_FONT) -> None:
         """Create text and insert into drawing."""
-        sized_font = ImageFont.truetype(font=self.FONT, size=font_size)
         for line in wrap(text, width=self.MAX_C_PER_LINE):
             self.draw.text(
                 (0, self.y),
                 line,
                 fill=color,
-                font=sized_font,
+                font=font,
                 )
-            self._next_y(font_size)
+            self._next_y(font.size)
 
     def create_footer(self) -> None:
         """Create footer (text) for this image.
