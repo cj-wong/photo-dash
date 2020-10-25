@@ -9,7 +9,7 @@
         },
         {
             "type": "gauge",
-            "color": ["#000000", "#111111"],
+            "color": ["#AAAAAA", "#0000FF"],
             "range": [0, 10, 20],
             "value": 5
         }
