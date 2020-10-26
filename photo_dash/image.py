@@ -241,15 +241,16 @@ class DashImg:
             last_x0 = offset
 
         offset = self.get_gauge_offset(value, end_a, end_b)
-        self.draw.text(
-            (offset, self.y),
-            str(value),
-            fill=self.TEXT_COLOR,
-            font=self.SECTION_FONT,
-            anchor='mt',
-            stroke_width=self.GAUGE_VALUE_STROKE,
-            stroke_fill=self.GAUGE_LINE_COLOR,
-            )
+        if not self.gauge_value_text_collision(value, offset):
+            self.draw.text(
+                (offset, self.y),
+                str(value),
+                fill=self.TEXT_COLOR,
+                font=self.SECTION_FONT,
+                anchor='mt',
+                stroke_width=self.GAUGE_VALUE_STROKE,
+                stroke_fill=self.GAUGE_LINE_COLOR,
+                )
         self.draw.line(
             [(offset, y0), (offset, y1)],
             fill=self.GAUGE_LINE_COLOR,
@@ -310,6 +311,8 @@ class DashImg:
         """
         width = self.get_number_half_width(val)
         last_width = self.get_number_half_width(self.last_gauge_value)
+        config.LOGGER.info(f'value: {val}, last: {self.last_gauge_value}')
+        config.LOGGER.info(f'width: {width}, last_width: {last_width}')
         return (offset - width) < (self.last_gauge_offset + last_width)
 
     def gauge_value_text_collision(self, val: int, offset: int) -> bool:
