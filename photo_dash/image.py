@@ -337,7 +337,7 @@ class DashImg:
         values = list(self.created_gauge_values)
         values.append(val)
         values.sort()
-        index = self.created_gauge_values.index(val)
+        index = values.index(val)
         below = values[index - 1]
         above = values[index + 1]
 
