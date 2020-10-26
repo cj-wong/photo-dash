@@ -124,6 +124,7 @@ class DashImg:
 
         self.dt = pendulum.now()
         self.last_gauge_value = None
+        self.created_gauge_values = {}
 
         with Image.new('RGB', config.CANVAS) as self.im:
             self.draw = ImageDraw.Draw(self.im)
@@ -268,6 +269,7 @@ class DashImg:
             )
         self.last_gauge_value = value
         self.last_gauge_offset = offset
+        self.created_gauge_values[value] = offset
 
     def get_gauge_offset(self, value: int, end_a: int, end_b: int) -> int:
         """Get the current gauge offset.
@@ -295,6 +297,9 @@ class DashImg:
         val and last_val and check whether they may possibly overlap
         in bounding box.
 
+        val should always be greater than or equal to
+        self.last_gauge_value.
+
         Args:
             val (int): the current value
             offset (int): the current value's offset
@@ -306,6 +311,40 @@ class DashImg:
         width = self.get_number_half_width(val)
         last_width = self.get_number_half_width(self.last_gauge_value)
         return (offset - width) < (self.last_gauge_offset + last_width)
+
+    def gauge_value_text_collision(self, val: int, offset: int) -> bool:
+        """Gauges whether a gauge value may collide with marks.
+
+        Because some marks may not have been rendered,
+        self.created_gauge_values is used to ensure collision check with
+        only rendered marks.
+
+        Similar to gauge_text_collision but checks both closest smallest
+        and closest largest values.
+
+        Returns:
+            bool: whether text will collide (True) or not (False)
+
+        """
+        if val in self.created_gauge_values:
+            return True
+        width = self.get_number_half_width(val)
+        # Not to be confused with dict.values(), these are keys.
+        values = list(self.created_gauge_values)
+        values.append(val)
+        values.sort()
+        index = self.created_gauge_values.index(val)
+        below = values[index - 1]
+        above = values[index + 1]
+
+        below_width = self.get_number_half_width(below)
+        if (offset - width) < (self.created_gauge_values[below] + below_width):
+            return True
+        above_width = self.get_number_half_width(above)
+        if (self.created_gauge_values[above] - above_width) < (offset + width):
+            return True
+
+        return False
 
     def get_number_half_width(self, number: int) -> int:
         """Get the pixel width of a number determined by the font.
