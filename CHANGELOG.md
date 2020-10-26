@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.3] - 2020-10-25
+### Changed
+- `get_number_half_width()` in [image.py](photo_dash/image.py) should now accept `float` instead of strictly `int`.
+
 ## [0.1.2] - 2020-10-25
 ### Fixed
 - The timestamp is now initialized when `DashImg.create()` is called.

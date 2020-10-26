@@ -350,22 +350,30 @@ class DashImg:
 
         return False
 
-    def get_number_half_width(self, number: int) -> int:
+    def get_number_half_width(self, number: float) -> int:
         """Get the pixel width of a number determined by the font.
 
         Args:
-            number (int): the number to convert to half pixel width
+            number (float): the number to convert to half pixel width
 
         Returns:
             int: half pixel width of a number, rounded up
 
         """
-        try:
+        symbols = 0
+        # Handle negative sign
+        if number < 0:
+            symbols += 1
+            number = abs(number)
+        # Handle decimals
+        if number != int(number):
+            symbols += 1
+
+        if number >= 1:
             digits = floor(log10(number)) + 1
-        except ValueError:
-            # number == 0
+        else:
             digits = 1
-        return ceil(digits * self.SECTION_CHAR / 2)
+        return ceil((digits + symbols) * self.SECTION_CHAR / 2)
 
     def create_footer(self) -> None:
         """Create footer (text) for this image.
