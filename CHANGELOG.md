@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - The timestamp is now initialized when `DashImg.create()` is called.
 - The photo frame is somehow scaling images past their intended borders. This has caused text to go offscreen. Now, text elements (including the footer) will have a small offset. Both title and footer will have a small spacer from the top and bottom. All text elements will have a small spacer from the nearest side.
+- Gauge values (marks) should no longer obscure each other. In the case that a number might collide or intersect with a previous number, it will be skipped.
 
 ## [0.1.1] - 2020-10-25
 ### Changed

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from math import ceil
+from math import ceil, floor, log10
 from textwrap import wrap
 from typing import Any, Dict, List, Union
 
@@ -123,6 +123,7 @@ class DashImg:
             raise TooManySections(len(self.sections))
 
         self.dt = pendulum.now()
+        self.last_gauge_value = None
 
         with Image.new('RGB', config.CANVAS) as self.im:
             self.draw = ImageDraw.Draw(self.im)
@@ -224,15 +225,16 @@ class DashImg:
         # Draw the gauge first
         for val, color in zip(values, colors):
             offset = self.get_gauge_offset(val, end_a, end_b)
-            self.draw.text(
-                (offset, self.y),
-                str(val),
-                fill=color,
-                font=self.SECTION_FONT,
-                anchor='mt',
-                )
+
+            if (self.last_gauge_value is None
+                    or not self.gauge_text_collision(val, offset)):
+                self.create_gauge_value(val, offset, color)
+
+            c0 = (last_x0, y0)
+            c1 = (offset, y1)
+
             self.draw.rectangle(
-                [(last_x0, y0), (offset, y1)],
+                [c0, c1],
                 fill=color,
                 )
             last_x0 = offset
@@ -255,6 +257,18 @@ class DashImg:
 
         self._next_y(2 * self.SECTION_FONT.size + self.SPACER)
 
+    def create_gauge_value(self, value: int, offset: int, color: str) -> None:
+        """Create a gauge value (mark)."""
+        self.draw.text(
+            (offset, self.y),
+            str(value),
+            fill=color,
+            font=self.SECTION_FONT,
+            anchor='mt',
+            )
+        self.last_gauge_value = value
+        self.last_gauge_offset = offset
+
     def get_gauge_offset(self, value: int, end_a: int, end_b: int) -> int:
         """Get the current gauge offset.
 
@@ -273,6 +287,42 @@ class DashImg:
             // length
             + self.GAUGE_OFFSET
             )
+
+    def gauge_text_collision(self, val: int, offset: int) -> bool:
+        """Determine whether new text will collide with existing text.
+
+        Specifically, check the magnitude (number of digits) for both
+        val and last_val and check whether they may possibly overlap
+        in bounding box.
+
+        Args:
+            val (int): the current value
+            offset (int): the current value's offset
+
+        Returns:
+            bool: whether text will collide (True) or not (False)
+
+        """
+        width = self.get_number_half_width(val)
+        last_width = self.get_number_half_width(self.last_gauge_value)
+        return (offset - width) < (self.last_gauge_offset + last_width)
+
+    def get_number_half_width(self, number: int) -> int:
+        """Get the pixel width of a number determined by the font.
+
+        Args:
+            number (int): the number to convert to half pixel width
+
+        Returns:
+            int: half pixel width of a number, rounded up
+
+        """
+        try:
+            digits = floor(log10(number)) + 1
+        except ValueError:
+            # number == 0
+            digits = 1
+        return ceil(digits * self.SECTION_CHAR / 2)
 
     def create_footer(self) -> None:
         """Create footer (text) for this image.
