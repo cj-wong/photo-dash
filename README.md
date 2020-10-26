@@ -1,5 +1,8 @@
 # photo-dash
 
+![Example deployment][.header]
+
+
 ## Overview
 
 The `photo-dash` project is a series of modules and an endpoint. The endpoint sends images to a dumb digital photo frame.
@@ -52,3 +55,4 @@ This project is not affiliated with or endorsed by [Leed's] or [the Raspberry Pi
 [Leed's]: https://www.pcna.com/leeds/en-us
 [RPI]: https://www.raspberrypi.org/
 [USBGUIDE]: https://magpi.raspberrypi.org/articles/pi-zero-w-smart-usb-flash-drive
+[.header]: resources/irl.jpg?raw=true
