@@ -123,8 +123,6 @@ class DashImg:
             raise TooManySections(len(self.sections))
 
         self.dt = pendulum.now()
-        self.last_gauge_value = None
-        self.created_gauge_values = {}
 
         with Image.new('RGB', config.CANVAS) as self.im:
             self.draw = ImageDraw.Draw(self.im)
@@ -206,6 +204,9 @@ class DashImg:
             colors (List[int]): color to paint sections between marks
 
         """
+        self.last_gauge_value = None
+        self.created_gauge_values = {}
+
         sort_values = sorted(values)
         if values != sort_values:
             config.LOGGER.warning('The values were unsorted.')
