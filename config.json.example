@@ -1,5 +1,7 @@
 {
     "width": 480,
     "length": 234,
-    "destination": "/path/to/destination"
+    "destination": "/path/to/destination",
+    "quiet_start": 21,
+    "quiet_end": 7
 }

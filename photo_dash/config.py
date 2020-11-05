@@ -4,34 +4,41 @@ import logging.handlers
 from pathlib import Path
 
 
-LOGGER = logging.getLogger('photo-dash')
+_LOGGER_NAME = 'photo-dash'
+
+LOGGER = logging.getLogger(_LOGGER_NAME)
 LOGGER.setLevel(logging.DEBUG)
 
-FH = logging.handlers.RotatingFileHandler(
-    'photo-dash.log',
+_FH = logging.handlers.RotatingFileHandler(
+    f'{_LOGGER_NAME}.log',
     maxBytes=40960,
     backupCount=5,
     )
-FH.setLevel(logging.DEBUG)
+_FH.setLevel(logging.DEBUG)
 
-CH = logging.StreamHandler()
-CH.setLevel(logging.WARNING)
+_CH = logging.StreamHandler()
+_CH.setLevel(logging.WARNING)
 
-FORMATTER = logging.Formatter(
+_FORMATTER = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-FH.setFormatter(FORMATTER)
-CH.setFormatter(FORMATTER)
+_FH.setFormatter(_FORMATTER)
+_CH.setFormatter(_FORMATTER)
 
-LOGGER.addHandler(FH)
-LOGGER.addHandler(CH)
+LOGGER.addHandler(_FH)
+LOGGER.addHandler(_CH)
 
-CONFIG_LOAD_ERRORS = (
+_CONFIG_LOAD_ERRORS = (
     FileNotFoundError,
     KeyError,
     TypeError,
     ValueError,
     json.decoder.JSONDecodeError,
+    )
+
+_QUIET_KEYS = (
+    'quiet_start',
+    'quiet_end',
     )
 
 
@@ -43,12 +50,27 @@ try:
     DEST = Path(CONFIG['destination'])
     if not DEST.exists():
         raise RuntimeError
-except CONFIG_LOAD_ERRORS as e:
+except _CONFIG_LOAD_ERRORS as e:
     LOGGER.error('config.json doesn\'t exist or is malformed.')
     LOGGER.error(f'More information: {e}')
     raise e
 except RuntimeError as e:
     LOGGER.error(f'{DEST} is not a valid destination. Please specify a path.')
     raise e
+
+try:
+    QUIET_HOURS = {
+        period: hour
+        for period, hour in CONFIG.items()
+        if period in _QUIET_KEYS and type(hour) is int
+        }
+    if not QUIET_HOURS or len(set(QUIET_HOURS.values())) == 1:
+        raise ValueError
+except ValueError:
+    LOGGER.info(
+        'Quiet hours were not set. They are either not present or malformed.'
+        )
+    del QUIET_HOURS
+
 
 CANVAS = (WIDTH, LENGTH)
