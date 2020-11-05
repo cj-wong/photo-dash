@@ -47,6 +47,10 @@ Make sure to fill in all the fields in [config.json](config.json.example).
 - `"width"`: integer; width of the digital photo frame display, in pixels
 - `"length"`: integer; length of the digital photo frame display, in pixels
 - `"destination"`: string; must be a valid path (relative or absolute) that can be parsed by `pathlib.Path`
+- `"quiet_start"`: integer, optional; when quiet hours should start; requests (except for `GET` `QuietHours`) will not be fulfilled during this time
+- `"quiet_end"`: integer, optional; when quiet hours should end; requests will resume
+
+⚠ If either `"quiet_start"` or `"quiet_end"` is defined, both quiet hours fields must be defined. Both values must not also be the same.
 
 ## Disclaimer
 
