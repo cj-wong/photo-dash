@@ -66,6 +66,9 @@ try:
         }
     if not QUIET_HOURS or len(set(QUIET_HOURS.values())) == 1:
         raise ValueError
+
+    QUIET_START = QUIET_HOURS['quiet_start']
+    QUIET_END = QUIET_HOURS['quiet_end']
 except ValueError:
     LOGGER.info(
         'Quiet hours were not set. They are either not present or malformed.'
