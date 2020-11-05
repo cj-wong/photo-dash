@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from math import ceil, floor, log10
+from pathlib import Path
 from textwrap import wrap
 from typing import Any, Dict, List, Union
 
@@ -147,7 +148,13 @@ class DashImg:
                     config.LOGGER.warning(f'More info: {e}')
                     continue
             self.create_footer()
-            self.im.save(config.DEST / f'{self.module}.jpg', quality=85)
+            self.dest = config.DEST / f'{self.module}.jpg'
+            self.im.save(self.dest, quality=85)
+
+    def delete(self) -> None:
+        """Delete the image. This is mostly used for quiet hour images."""
+        file = Path(self.dest)
+        file.unlink()
 
     def sections_fit(self) -> bool:
         """Check whether the sections fit in the image.
