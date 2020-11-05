@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     - Added another endpoint `/quiet` that will return quiet hours with a `GET` request.
     - During quiet hours, a special image will be generated that indicates images may not be up-to-date. This image will be deleted when quiet hours are over.
 
+### Fixed
+- Status codes for `put()` in the API were returned incorrectly.
+
 ## [0.1.3] - 2020-10-25
 ### Changed
 - `get_number_half_width()` in [image.py](photo_dash/image.py) should now accept `float` instead of strictly `int`.

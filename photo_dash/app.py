@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Tuple, Union
 
 from flask import Flask, request
 from flask_restful import Api, Resource
@@ -13,21 +13,25 @@ API = Api(APP)
 class PhotoDash(Resource):
     """The photo-dash endpoint."""
 
-    def put(self) -> int:
+    def put(self) -> Tuple[Dict, int]:
         """Put new data from a request into an image.
 
         Returns:
-            int: HTTP status codes
-                201: no errors occurred
-                401: too many sections were requested
-                503: request was sent during quiet hours
+            Tuple[Dict, int]:
+                Dict: if 201, the resource requested returned; otherwise,
+                    an error code
+                int: HTTP status codes
+                    201: no errors occurred
+                    401: too many sections were requested
+                    503: request was sent during quiet hours
 
         """
         config.LOGGER.info('Got a request')
         try:
             if utils.in_quiet_hours():
-                config.LOGGER.info('Request was sent during quiet hours')
-                return 503
+                e = 'Request was sent during quiet hours'
+                config.LOGGER.info(e)
+                return {'error': e}, 503
         except AttributeError:
             pass
 
@@ -39,8 +43,8 @@ class PhotoDash(Resource):
         try:
             config.LOGGER.info('Attempting image creation')
             img.create()
-        except image.TooManySections:
-            return 401
+        except image.TooManySections as e:
+            return {'error': e}, 401
         return 201
 
 
