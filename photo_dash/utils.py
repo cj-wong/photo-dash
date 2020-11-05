@@ -79,7 +79,9 @@ def setup_quiet_hours() -> None:
 
         if in_quiet_hours():
             img = create_quiet_hours_image()
+            quiet = True
         else:
+            quiet = False
             # Because quiet hours are no longer in effect, delete the image
             # that references the quiet hours.
             try:
@@ -115,4 +117,8 @@ def setup_quiet_hours() -> None:
             raise ValueError
 
         diff = next_hour - now
-        sleep(diff.seconds)
+        # Bump up, in case some fraction of a second are present
+        sleep_s = diff.seconds + 1
+        config.LOGGER.info(f'Sleeping for {sleep_s}s')
+        config.LOGGER.info(f'Quiet hours: {quiet}')
+        sleep(sleep_s)
