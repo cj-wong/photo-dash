@@ -111,7 +111,9 @@ def setup_quiet_hours() -> None:
         else:
             hour = config.QUIET_START
 
-        next_hour = pendulum.datetime(now.year, now.month, now.day, hour, 0)
+        next_hour = pendulum.datetime(
+            now.year, now.month, now.day, hour, 0, tz=now.tz
+            )
         next_hour += delta
 
         if next_hour < now:
