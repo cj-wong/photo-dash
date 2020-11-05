@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.4] - 2020-11-04
+### Changed
+- In reference of issue #1:
+    - Added optional fields `"quiet_start"` and `"quiet_end"` in [config.json.example](config.json.example). These should be integers to represent when quiet hours will begin or end.
+    - Added another endpoint `/quiet` that will return quiet hours with a `GET` request.
+    - During quiet hours, a special image will be generated that indicates images may not be up-to-date. This image will be deleted when quiet hours are over.
+
 ## [0.1.3] - 2020-10-25
 ### Changed
 - `get_number_half_width()` in [image.py](photo_dash/image.py) should now accept `float` instead of strictly `int`.
