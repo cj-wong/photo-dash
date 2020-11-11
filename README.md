@@ -48,7 +48,8 @@ Fixes:
 
 ## Image Caveats
 
-- When creating gauges, some numbers may be omitted if they cannot be rendered. 
+- The font must be monospace. It is difficult to determine pixel width in a non-monospace font and sections become unwieldy to calculate without assuming monospace. If you replace the font, create a test image with the maximum number of characters per line with the font size `SECTION_SIZE` (in `photo_dash.image.DashImg`) and change `SECTION_CHAR`.
+- Another reason why a monospace font is required: When rendering gauges, some numbers may be omitted if they cannot be rendered without obscuring an existing number. Since gauge markers are sorted from lowest to highest and their anchors are mid-aligned, each marker must check how far it is from its closest left neighbor (with half of its neighbor's width calculated). If the marker does not have enough space, it will not be rendered. Gauge values are also subject to this (including space from its nearest right neighbor), although gauge value lines will still be rendered regardless.
 
 ## Usage
 
