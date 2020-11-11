@@ -9,9 +9,9 @@ The `photo-dash` project is a series of modules and an endpoint. This repository
 
 Each module should be named like so: `photo-dash-module`. Each module should send a put request to the REST API to create or update images. The data format for these images is documented [here](docs/DATA.md).
 
-Although this project focuses on a specific, generic frame ([Leed's] 1690-32BK), it may be possible to adapt the configurations for other dumb digital photo frames. This photo frame in particular has a SD card slot and a USB A input. Both serve only as storage inputs; the frame cannot interact directly with a computer. More specifications are below; use them to adapt other frames for the project.
+Although this project focuses on a specific, generic frame ([Leed's] 1690-32BK), it may be possible to adapt the configurations for other dumb digital photo frames. This photo frame in particular has a full SD card slot and a USB A input slot. Both serve only as storage inputs; the frame cannot interact directly with a computer. More specifications are below; use them to adapt other frames for the project as necessary.
 
-Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve as the endpoint. It will connect to the photo frame via USB A (using its `USB` micro USB out plug) and act as a mass storage device. This [guide][USBGUIDE] from [the Raspberry Pi Foundation][RPI] is very helpful for setting up a USB (OTG) gadget to simulate a flash drive. **Although not required, I recommend using this setup for the project.** I also recommend creating a data-only cable (details in the guide), as it means the SBC can be run independently of the photo frame.
+Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve as the endpoint. It will connect to the photo frame via USB A (using its `USB` micro USB out plug) and act as a mass storage device. This [guide][USBGUIDE] from [the Raspberry Pi Foundation][RPI] is very helpful for setting up a USB (OTG) gadget to simulate a flash drive. **Although not required, I recommend using this setup for the project.** I also recommend creating a data-only cable (details in the guide), as it means the SBC can be run independently of the photo frame. *Note: because this is an endpoint to automatically generate images, you do not need to follow step 11 (Samba setup) in the guide.*
 
 ## 1690-32BK Specifications
 
@@ -27,7 +27,7 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve 
 Fixes:
 
 - Images must be JPG. If your frame supports other extensions, feel free to change this in `photo_dash.image.DashImg.create`; the line is `self.dest = config.DEST / f'{self.module}.jpg'`.
-- Images output from `photo_dash.image.DashImg` will be constrained to the resolution above (480x234).
+- Images output from `photo_dash.image.DashImg` will be constrained to the resolution configured (default: 480x234).
 - The visible area is a little reduced from its expected image resolution, probably due to the underlying display being partially obscured. To compensate for these cut borders, `photo_dash.image.DashImg` has two attributes that change offset from the outer edge: `H_SPACER` (horizontal) and `V_SPACER` (vertical).
 
 ### Functionality
@@ -56,6 +56,8 @@ Fixes:
 1. Setup [config.json](config.json.example) by copying the example file and renaming it. `"width"` and `"length"` must be integers. `"destination"` must be a string that can be parsed as a path using `pathlib.Path`. (Both relative and absolute paths can work here.)
 2. Run `python photo_dash/app.py`, preferably with `gunicorn` (provided in [requirements.txt](requirements.txt)). The endpoint does not do anything on its own; use modules to send data to convert to a `photo-dash` image.
 3. (Optional) Run `python utils_runner.py` for extra utilities. Currently, this includes creating an image with text that describes quiet hours when in effect.
+
+After everything has been set up, I recommend setting firewalls to restrict external access. Preferably, use something like `ufw` and restrict incoming connections to a subnet.
 
 ## Requirements
 
