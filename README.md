@@ -56,11 +56,19 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve 
 
 ## Usage
 
-1. Setup [config.json](config.json.example) by copying the example file and renaming it. `"width"` and `"length"` must be integers. `"destination"` must be a string that can be parsed as a path using `pathlib.Path`. (Both relative and absolute paths can work here.)
+1. [Setup](#setup) [config.json](config.json.example) by copying the example file and renaming it. `"width"` and `"length"` must be integers. `"destination"` must be a string that can be parsed as a path using `pathlib.Path`. (Both relative and absolute paths can work here.)
 2. Run [photo_dash/app.py](photo_dash/app.py), preferably with `gunicorn` (provided in [requirements.txt](requirements.txt)). The endpoint does not do anything on its own; use modules to send data to convert to a `photo-dash` image.
 3. (Optional) Run [utils_runner.py](utils_runner.py) for extra utilities. Currently, this includes creating an image with text that describes quiet hours when in effect. The script should be run in background, preferably with any init system provided by the operating system.
 
 After everything has been set up, I recommend setting firewalls to restrict external access. Preferably, use something like `ufw` and restrict incoming connections to a subnet or even individual addresses.
+
+## Creating Modules
+
+Modules should be cloned (and forked) from the base modules to provide some universal functionality. Currently, that includes reading quiet hours from the endpoint and checking whether quiet hours is in effect at any specific moment.
+
+These modules should subclass the base class and call the inherited functions (e.g. for the Python module, `self.setup_quiet_hours()` and `self.in_quiet_hours()`). More information on what to use is detailed in each base module.
+
+- [Python 3.7+][base.py]
 
 ## Requirements
 
@@ -97,3 +105,4 @@ This project is not affiliated with or endorsed by [Leed's] or [the Raspberry Pi
 [RPIZ]: https://www.raspberrypi.org/products/raspberry-pi-zero-w/
 [USBGUIDE]: https://magpi.raspberrypi.org/articles/pi-zero-w-smart-usb-flash-drive
 [.header]: resources/irl.jpg?raw=true
+[base.py]: https://github.com/cj-wong/photo-dash-base.py
