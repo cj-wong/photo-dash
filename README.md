@@ -2,6 +2,8 @@
 
 ![Example deployment][.header]
 
+##### *[photo-dash-sds011](https://github.com/cj-wong/photo-dash-sds011), live*
+
 
 ## Overview
 
@@ -64,11 +66,7 @@ After everything has been set up, I recommend setting firewalls to restrict exte
 
 ## Creating Modules
 
-Modules should be cloned (and forked) from the base modules to provide some universal functionality. Currently, that includes reading quiet hours from the endpoint and checking whether quiet hours is in effect at any specific moment.
-
-These modules should subclass the base class and call the inherited functions (e.g. for the Python module, `self.setup_quiet_hours()` and `self.in_quiet_hours()`). More information on what to use is detailed in each base module.
-
-- [Python 3.7+][base.py]
+Modules should be cloned (and forked) from the [base modules](https://github.com/cj-wong/photo-dash-base) to provide some universal functionality. More details are within each language's directory.
 
 ## Requirements
 
