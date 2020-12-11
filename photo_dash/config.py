@@ -78,4 +78,27 @@ try:
 except (KeyError, ValueError):
     LOGGER.info('Quiet hours are disabled.')
     LOGGER.info('They may have been malformed or missing.')
+    LOGGER.info('To enable quiet hours, make sure both fields are filled in')
+    LOGGER.info('and both values should not be the same.')
     QUIET_HOURS = None
+
+
+try:
+    STALE_CHECK = CONFIG['stale_check']
+    STALE_THRESHOLD = CONFIG['stale_threshold']
+    if type(STALE_THRESHOLD) is not int or STALE_THRESHOLD < 1:
+        raise ValueError
+    try:
+        STALE_FOLLOW_QUIET_HOURS = CONFIG['stale_follow_quiet_hours']
+    except KeyError:
+        LOGGER.info('Quiet hours check in stale file check was not set, so')
+        LOGGER.info('quiet hours will not be checked in stale file check.')
+        STALE_FOLLOW_QUIET_HOURS = False
+except KeyError:
+    LOGGER.info('Stale file check is disabled.')
+    LOGGER.info('To enable stale file check, make sure stale_check is `true`')
+    LOGGER.info('and `stale_threshold` isn\'t 0.')
+    STALE_CHECK = False
+except ValueError:
+    LOGGER.info('Stale file check is disabled.')
+    LOGGER.info('Set `stale_threshold` a number above 0.')

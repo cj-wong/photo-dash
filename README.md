@@ -82,12 +82,24 @@ Make sure to fill in all the fields in [config.json](config.json.example).
 - `"length"`: integer; length of the digital photo frame display, in pixels
 - `"destination"`: string; must be a valid path (relative or absolute) that can be parsed by `pathlib.Path`
 
-Optional configuration:
+### Optional configuration
+
+**Quiet Hours**
 
 - `"quiet_start"`: integer; when quiet hours should start; requests (except for `GET` `QuietHours`) will not be fulfilled during this time
 - `"quiet_end"`: integer; when quiet hours should end; requests will resume
 
 ⚠ If you intend to use quiet hours, both quiet hours fields must be defined and not also be the same as each other. You cannot define only one field.
+
+**Stale File Check**
+
+- `"stale_check"`: boolean; whether to enable stale file checking (default: `false`)
+- `"stale_threshold"`: integer; how long time in hours must pass since the last file update (default: `0`)
+- `"stale_follow_quiet_hours"`: boolean; whether quiet hours should affect the check (see note below) (default: `false`)
+
+⚠ If you intend to use the stale file check, both `"stale_check"` and `stale_threshold"` must be set and not their respective default values.
+
+⚠ If `"stale_follow_quiet_hours"` is set to `true`, the file check will subtly change: it will no longer run when quiet hours are in effect, and the threshold will subtract the quiet hours that have elapsed since the last file update.
 
 ## Disclaimer
 

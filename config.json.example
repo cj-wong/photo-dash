@@ -3,5 +3,8 @@
     "length": 234,
     "destination": "/path/to/destination",
     "quiet_start": 21,
-    "quiet_end": 7
+    "quiet_end": 7,
+    "stale_check": false,
+    "stale_threshold": 0,
+    "stale_follow_quiet_hours": false
 }
