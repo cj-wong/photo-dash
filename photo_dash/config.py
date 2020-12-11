@@ -41,6 +41,7 @@ _QUIET_KEYS = (
     'quiet_end',
     )
 
+# Required configuration
 
 try:
     with open('config.json', 'r') as f:
@@ -58,22 +59,23 @@ except RuntimeError as e:
     LOGGER.error(f'{DEST} is not a valid destination. Please specify a path.')
     raise e
 
+CANVAS = (WIDTH, LENGTH)
+
+# Optional configuration
+
 try:
-    QUIET_HOURS = {
-        period: hour
-        for period, hour in CONFIG.items()
-        if period in _QUIET_KEYS and type(hour) is int
-        }
-    if not QUIET_HOURS or len(set(QUIET_HOURS.values())) == 1:
+    QUIET_START = CONFIG['quiet_start']
+    QUIET_END = CONFIG['quiet_end']
+    if (QUIET_START == QUIET_END
+            or type(QUIET_START) is not int
+            or type(QUIET_END) is not int):
         raise ValueError
 
-    QUIET_START = QUIET_HOURS['quiet_start']
-    QUIET_END = QUIET_HOURS['quiet_end']
-except ValueError:
-    LOGGER.info(
-        'Quiet hours were not set. They are either not present or malformed.'
-        )
-    del QUIET_HOURS
-
-
-CANVAS = (WIDTH, LENGTH)
+    QUIET_HOURS = {
+        period: CONFIG[period]
+        for period in _QUIET_KEYS
+        }
+except (KeyError, ValueError):
+    LOGGER.info('Quiet hours are disabled.')
+    LOGGER.info('They may have been malformed or missing.')
+    QUIET_HOURS = None
