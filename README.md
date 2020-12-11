@@ -13,7 +13,7 @@ Each module should be named like so: `photo-dash-module`. Each module should sen
 
 Although this project focuses on a specific, generic frame ([Leed's] 1690-32BK), it may be possible to adapt the configurations for other dumb digital photo frames. This photo frame in particular has a full SD card slot and a USB A input slot. Both serve only as storage inputs; the frame cannot interact directly with a computer. More specifications are below; use them to adapt other frames for the project as necessary.
 
-Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve as the endpoint. It will connect to the photo frame via USB A (using its `USB` micro USB out plug) and act as a mass storage device. This [guide][USBGUIDE] from [the Raspberry Pi Foundation][RPI] is very helpful for setting up a USB (OTG) gadget to simulate a flash drive.
+Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve as the endpoint. It will connect to the photo frame via USB A (using its `USB` receptacle, not its `PWR` receptacle) and act as a mass storage device. This [guide][USBGUIDE] from [the Raspberry Pi Foundation][RPI] is very helpful for setting up a USB (OTG) gadget to simulate a flash drive.
 
 **Although not required, I recommend using the guide and this setup for the project.** I also recommend creating a data-only cable (details in the guide), as it means the SBC can be run independently of the photo frame. Also, because this is an endpoint to automatically generate images, you do not need to follow step 11 (Samba setup) in the guide.
 
