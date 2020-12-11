@@ -37,7 +37,7 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve 
 ### Functionality
 
 - On boot, if no images are loaded, the photo frame will display a kind of boot screen. After at least one image has been shown, the boot screen will never show until rebooted.
-- A slideshow option is available by default. This is required for full functionality, even when not using the exact photo frame.
+- A slideshow option is available by default. This is required for full functionality, even when not using the exact photo frame. Slideshow order seems to be similar or identical to that of file order in Linux. ***This may need some investigation.***
 - Directories are supported. However, `photo_dash.image.DashImg` will not use these unless specified as the destination. Empty directories are skipped.
 - FAT32 (for the USB gadget) is well supported, but other file systems have not been tested.
 - Images stay in memory on the photo frame. As a result, if the endpoint's USB gadget encounters an issue, the images on the photo frame may not be up-to-date. Because of this limitation, you cannot visually debug problems with the endpoint if images are shown.
