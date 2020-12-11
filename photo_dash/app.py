@@ -11,7 +11,14 @@ API = Api(APP)
 
 
 class PhotoDash(Resource):
-    """The photo-dash endpoint."""
+    """The photo-dash endpoint.
+
+    Attributes:
+        MODULE_PREFIX (str): the prefix for all module names
+
+    """
+
+    MODULE_PREFIX = 'photo-dash-'
 
     def put(self) -> Tuple[Dict, int]:
         """Put new data from a request into an image.
@@ -37,6 +44,8 @@ class PhotoDash(Resource):
 
         r = request.get_json()
         module = r['module']
+        if not module.startswith(self.MODULE_PREFIX):
+            module = f'{self.MODULE_PREFIX}{module}'
         title = r['title']
         sections = r['sections']
         img = image.DashImg(module, title, sections)
