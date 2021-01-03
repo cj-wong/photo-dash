@@ -65,6 +65,7 @@ class QuietHours(Resource):
 
         Returns:
             Dict[str, int]: if quiet hours were set
+            None: quiet hours weren't set
 
         """
         try:

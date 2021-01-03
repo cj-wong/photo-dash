@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     - As a result, several functions had their type-hints and/or return values corrected.
     - `SECTIONS` in [image.py] was incorrectly typed and now should accurately represent the list of sections allowed.
     - `T_FONT` in [image.py] could not be used as an alias and was dropped entirely.
-    - If `QUIET_HOURS` couldn't be set up in [config.py]
+    - If `QUIET_HOURS` couldn't be set up in [config.py], then rather than set it to `None`, the variable isn't set altogether. An `AttributeError` should be caught where quiet hours are used: both in [app.py] and [utils.py].
 
 ## [0.1.6] - 2020-12-10
 ### Changed
@@ -49,4 +49,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Initial version
 
 [config.py]: photo_dash/config.py
+[app.py]: photo_dash/app.py
 [image.py]: photo_dash/image.py
+[utils.py]: photo_dash/utils.py
