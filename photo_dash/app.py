@@ -54,7 +54,7 @@ class PhotoDash(Resource):
             img.create()
         except image.TooManySections as e:
             return {'error': e}, 401
-        return 201
+        return {}, 201
 
 
 class QuietHours(Resource):
@@ -70,7 +70,7 @@ class QuietHours(Resource):
         try:
             return config.QUIET_HOURS
         except AttributeError:
-            return
+            return None
 
 
 API.add_resource(PhotoDash, '/')

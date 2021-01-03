@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from math import ceil, floor, log10
 from pathlib import Path
 from textwrap import wrap
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Mapping, Sequence
 
 import pendulum
 from PIL import Image, ImageDraw, ImageFont
@@ -10,8 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from photo_dash import config
 
 
-SECTIONS = Dict[str, Union[str, List[Dict[str, Any]]]]
-T_FONT = ImageFont.FreeTypeFont
+SECTIONS = Sequence[Mapping[str, Any]]
 
 
 class TooManySections(BufferError):
@@ -42,11 +41,11 @@ class DashImg:
         FONT (str): the name of the font to use for all text elements
         TEXT_COLOR (str): color for the title on an image ('#FFFFFF')
         TITLE_SIZE (int): font size of the title (20)
-        TITLE_FONT (T_FONT): font & size for the title
+        TITLE_FONT (ImageFont.FreeTypeFont): font & size for the title
         SECTION_SIZE (int): font size for sections (16)
-        SECTION_FONT (T_FONT): font & size for sections
+        SECTION_FONT (ImageFont.FreeTypeFont): font & size for sections
         FOOTER_SIZE (int): font size of the footer (20)
-        FOOTER_FONT (T_FONT): font & size for the footer
+        FOOTER_FONT (ImageFont.FreeTypeFont): font & size for the footer
         MAX_C_PER_LINE (int): maximum characters allowed per line
         GAUGE_WIDTH (int): how long the gauge bar should be
         GAUGE_OFFSET (int): how far from the left should the bar start;
@@ -180,13 +179,14 @@ class DashImg:
             )
         return free_space > space
 
-    def create_text(self, text: str, color: str, font: T_FONT) -> None:
+    def create_text(
+            self, text: str, color: str, font: ImageFont.FreeTypeFont) -> None:
         """Create text and insert into drawing.
 
         Args:
             text (str): contents of the string
             color (str): color in hex format
-            font (T_FONT): the font & size used for the text
+            font (ImageFont.FreeTypeFont): the font & size used for the text
 
         """
         if font == self.TITLE_FONT:
@@ -211,8 +211,8 @@ class DashImg:
             colors (List[int]): color to paint sections between marks
 
         """
-        self.last_gauge_value = None
-        self.created_gauge_values = {}
+        # self.last_gauge_value = None
+        self.created_gauge_values: Dict = {}
 
         sort_values = sorted(values)
         if values != sort_values:
@@ -235,7 +235,7 @@ class DashImg:
         for val, color in zip(values, colors):
             offset = self.get_gauge_offset(val, end_a, end_b)
 
-            if (self.last_gauge_value is None
+            if (not getattr(self, 'last_gauge_value', None)
                     or not self.gauge_text_collision(val, offset)):
                 self.create_gauge_value(val, offset, color)
 

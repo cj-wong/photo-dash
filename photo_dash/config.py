@@ -80,7 +80,6 @@ except (KeyError, ValueError):
     LOGGER.info('They may have been malformed or missing.')
     LOGGER.info('To enable quiet hours, make sure both fields are filled in')
     LOGGER.info('and both values should not be the same.')
-    QUIET_HOURS = None
 
 
 try:
