@@ -109,5 +109,5 @@ This project is not affiliated with or endorsed by [Leed's] or [the Raspberry Pi
 [RPI]: https://www.raspberrypi.org/
 [RPIZ]: https://www.raspberrypi.org/products/raspberry-pi-zero-w/
 [USBGUIDE]: https://magpi.raspberrypi.org/articles/pi-zero-w-smart-usb-flash-drive
-[.header]: resources/irl.jpg?raw=true
+[.header]: images/example.jpg?raw=true
 [base.py]: https://github.com/cj-wong/photo-dash-base.py
