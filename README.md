@@ -15,16 +15,16 @@ Although this project focuses on a specific, generic frame ([Leed's] 1690-32BK),
 
 Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve as the endpoint. It will connect to the photo frame via USB A (using its `USB` receptacle, not its `PWR` receptacle) and act as a mass storage device. This [guide][USBGUIDE] from [the Raspberry Pi Foundation][RPI] is very helpful for setting up a USB (OTG) gadget to simulate a flash drive.
 
-**Although not required, I recommend using the guide and this setup for the project.** I also recommend creating a data-only cable (details in the guide), as it means the SBC can be run independently of the photo frame. Also, because this is an endpoint to automatically generate images, you do not need to follow step 11 (Samba setup) in the guide.
+**Although not required, I recommend using the guide and the above setup for the project.** I also recommend creating a data-only cable (details in the guide), as it means the SBC can be run independently of the photo frame. Also, because this is an endpoint to automatically generate images, you do not need to follow step 11 (Samba setup) in the guide.
 
-## 1690-32BK Specifications
+## 1690-32BK specifications
 
 ### Images
 
 - Image resolution: 480x234.
 - PNG is not supported. *(Test image formats: transparent PNG, JPG)*
 - Images that can render successfully are centered on both axes.
-- Images smaller than the given resolution on either or both axes aren't scaled, so they are letterboxed on one or both axes.
+- Images smaller than the given resolution on at least one axis aren't scaled, so they are letterboxed the axes longer than the image.
 - Images slightly larger than the given resolution will be scaled down and fitted in full, regardless of aspect ratio. For example, given the 1000x1000 image (aspect ratio 1:1), its resulting image will appear as 480x234 (aspect ratio 80:39 or approximately 2:1). *(Test image resolution: 1000x1000)*
 - Images much larger than the given resolution will be ignored and not shown. It is unclear whether image resolution or file size (or both) are responsible for this mechanism. Regardless, large images cannot work. *(Test image resolution: 12000x1000)*
 
@@ -35,19 +35,19 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve 
 - Directories are supported. However, `photo_dash.image.DashImg` will not use these unless specified as the destination. Empty directories are skipped.
 - FAT32 (for the USB gadget) is well supported, but other file systems have not been tested.
 - Images stay in memory on the photo frame. As a result, if the endpoint's USB gadget encounters an issue, the images on the photo frame may not be up-to-date. Because of this limitation, you cannot easily visually debug problems with the endpoint if images are shown.
-- During `sync`s (especially if the recommended watchdog from the [guide][USBGUIDE] is installed), the photo frame may display no images or the settings/overview screen. This transition should only last a couple seconds.
+- During `sync`s (especially if the recommended watchdog from the [guide][USBGUIDE] is installed), the photo frame may display no images or the settings/overview screen. This transition should only last a couple seconds, even on the aforementioned *Raspberry Pi Zero W*.
 
 ## Mitigations to limitations
 
 - Images must be JPG. If your frame supports other extensions, feel free to change this in `photo_dash.image.DashImg.create`; the line is `self.dest = config.DEST / f'{self.module}.jpg'`.
 - Images output from `photo_dash.image.DashImg` will be constrained to the resolution configured (default: 480x234).
-- The visible area is a little reduced from its expected image resolution, probably due to the underlying display being partially obscured. To compensate for these cut borders, `photo_dash.image.DashImg` has two attributes that change offset from the outer edge: `H_SPACER` (horizontal) and `V_SPACER` (vertical).
+- The visible area is a little reduced from its expected image resolution, probably due to the underlying display being partially obscured by the enclosure. To compensate for these cut borders, `photo_dash.image.DashImg` has two attributes that change offset from the outer edge: `H_SPACER` (horizontal) and `V_SPACER` (vertical). Both spacers will apply on two sides each: top and bottom for `V_SPACER` and left and right for `H_SPACER`. **If your frame does not have this issue, feel free to leave both spacers at 0.**
 - A slideshow option is required for full functionality, even when not using the exact photo frame described above.
 - Regarding images staying in memory, consequently when quiet hours are enabled and active, images from the last update will still be present. To mitigate this issue (or rather, make its quiet hours status known) when the frame may be on, you may run [utils_runner.py](utils_runner.py). See [Usage](#usage) for more details.
-- The font must be monospace. It is difficult to determine pixel width in a non-monospace font, and sections become unwieldy to calculate without assuming monospace. If you replace the font, create a test image with more than the expected maximum number of characters per line with the font size `SECTION_SIZE` (in `photo_dash.image.DashImg`), count the maximum rendered characters, and change `SECTION_CHAR` to this value.
+- The font must be monospace. It is difficult to determine pixel width for characters (and hence, a line of characters) in a non-monospace font, and sections become unwieldy to calculate without assuming monospace. If you replace the font, create a test image with more than the expected maximum number of characters per line with the font size `SECTION_SIZE` (in `photo_dash.image.DashImg`), count the maximum rendered characters, and change `SECTION_CHAR` to this value. *A test image creator may be developed later to accomodate this setup process.*
 - Another reason why a monospace font is required: When rendering gauges, some numbers may be omitted if they cannot be rendered without obscuring an existing number. Since gauge markers are sorted from lowest to highest and their anchors are mid-aligned, each marker must check how far it is from its closest left neighbor (with half of its neighbor's width calculated). If the marker does not have enough space, it will not be rendered. Gauge values are also subject to this (including space from its nearest right neighbor), although gauge value lines will still be rendered regardless.
 - If you are using the guide (specifically the kernel module `g_mass_storage`), in order for the endpoint to properly work after a reboot, I recommend adding the `modprobe` command (without `modprobe`) from the guide into a separate file under `/etc/modules-load.d`. Otherwise, you may have to manually update the kernel module (`g_mass_storage`).
-- The USB gadget must be FAT32 to avoid any unforeseen problems. The guide mounts the simulated storage as FAT32.
+- The USB gadget must be FAT32 to avoid any unforeseen problems. The *Raspberry Pi Foundation* guide mounts the simulated storage as FAT32.
 - Because FAT32 storage does not support sym-linking, files must be copied over or directly written to storage. Specify the output directory in the configuration.
 - The output directory in the configuration should point to the root of the mounted volume. If you have followed the guide linked above, this should be `/mnt/usb_share`. Although directories are supported, their behavior has not been tested (specifically, display order).
 
