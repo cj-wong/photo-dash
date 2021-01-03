@@ -20,7 +20,7 @@ The title should be representative of the [data](#sections), not necessarily the
 
 Sections are elements that fit between the header ([title](#title)) and the footer (date and time). They are created in the order they're read, aligned left, so the first sections begin near the top-left and continue down, aligned to the left border. Every section must contain a [type](#type) and [color(s)](#color). Each section is spaced vertically given the attribute `SPACER` in `photo_dash.image.DashImg`.
 
-## Section, in detail
+## An individual section, in detail
 
 ### "type"
 
@@ -47,4 +47,4 @@ Colors are in the format `#RRGGBB` and will fill the element in that color.
 ### "value"
 
 - If the [element](#type) is text, this is the text itself.
-- If the [element](#type) is a gauge, this represents the reading within a [range](#range). It will create a gray line within the gauge and may label the line with this value, provided that the number doesn't obscure any of the range markers. The value number will have a gray outline to indicate its relation to the gauge.
+- If the [element](#type) is a gauge, this represents the reading within a [range](#range). A gray line will indicate this value within the gauge and may be labeled with the value, provided that the number doesn't obscure any of the range markers. The value number, if rendered, will have a gray outline to indicate its relation to the gauge.
