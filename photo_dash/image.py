@@ -235,7 +235,7 @@ class DashImg:
         for val, color in zip(values, colors):
             offset = self.get_gauge_offset(val, end_a, end_b)
 
-            if (not getattr(self, 'last_gauge_value', None)
+            if (getattr(self, 'last_gauge_value', None) is None
                     or not self.gauge_text_collision(val, offset)):
                 self.create_gauge_value(val, offset, color)
 
