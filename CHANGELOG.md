@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.8] - 2021-01-22
+### Changed
+- In [image.py]:
+    - Fixed (missing) documentation.
+    - Renamed `DashImg.gauge_text_collision()` to `DashImg.does_gauge_text_collide()` and `DashImg.gauge_value_text_collision()` to `DashImg.does_gauge_value_collide()`.
+    - Changed `val` to `value` in `DashImg.gauge_text_collision()` and `DashImg.gauge_value_text_collision()`.
+
+### Fixed
+- Fixed #3: fixed gauge rendering issues that came as a result of the `mypy` refactor.
+    - Both `self.last_gauge_value` and `self.last_gauge_offset` attributes for `DashImg` in [image.py] are now deleted in `DashImg.create_gauge()`, to restore similar behavior prior to the `mypy` refactor.
+
 ## [0.1.7] - 2021-01-02
 ### Changed
 - The project has now been linted additionally by `mypy` on top of `Flake8`.
