@@ -244,7 +244,7 @@ class DashImg:
             offset = self.get_gauge_offset(val, end_a, end_b)
 
             if (getattr(self, 'last_gauge_value', None) is None
-                    or not self.gauge_text_collision(val, offset)):
+                    or not self.does_gauge_text_collide(val, offset)):
                 self.create_gauge_value(val, offset, color)
 
             c0 = (last_x0, y0)
@@ -257,7 +257,7 @@ class DashImg:
             last_x0 = offset
 
         offset = self.get_gauge_offset(value, end_a, end_b)
-        if not self.gauge_value_text_collision(value, offset):
+        if not self.does_gauge_value_collide(value, offset):
             self.draw.text(
                 (offset, self.y),
                 str(value),
@@ -317,7 +317,7 @@ class DashImg:
             + self.GAUGE_OFFSET
             )
 
-    def gauge_text_collision(self, value: int, offset: int) -> bool:
+    def does_gauge_text_collide(self, value: int, offset: int) -> bool:
         """Determine whether new text will collide with existing text.
 
         Specifically, check the magnitude (number of digits) for both
@@ -341,14 +341,14 @@ class DashImg:
         config.LOGGER.info(f'width: {width}, last_width: {last_width}')
         return (offset - width) < (self.last_gauge_offset + last_width)
 
-    def gauge_value_text_collision(self, value: int, offset: int) -> bool:
+    def does_gauge_value_collide(self, value: int, offset: int) -> bool:
         """Gauges whether a gauge value may collide with marks.
 
         Because some marks may not have been rendered,
         self.created_gauge_values is used to ensure collision check with
         only rendered marks.
 
-        Similar to gauge_text_collision but checks both closest smallest
+        Similar to does_gauge_text_collide but checks both closest smallest
         and closest largest values.
 
         Args:
