@@ -211,7 +211,15 @@ class DashImg:
             colors (List[int]): color to paint sections between marks
 
         """
-        # self.last_gauge_value = None
+        try:
+            # Delete self.last_gauge_value in case the module creates
+            # multiple gauges. This is to replicate prior behavior,
+            # `self.last_gauge_value = None` that mypy did not allow.
+            del self.last_gauge_value
+            del self.last_gauge_offset
+        except AttributeError:
+            pass
+
         self.created_gauge_values: Dict = {}
 
         sort_values = sorted(values)
