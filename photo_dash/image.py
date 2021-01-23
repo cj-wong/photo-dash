@@ -159,7 +159,8 @@ class DashImg:
         """Check whether the sections fit in the image.
 
         Returns:
-            bool: whether the sections will fit in the image or not
+            bool: whether the sections will fit in the image (True)
+                or not (False)
 
         """
         space = 0
@@ -201,8 +202,7 @@ class DashImg:
             self._next_y(font.size)
 
     def create_gauge(
-        self, value: int, values: List[int], colors: List[str]
-            ) -> None:
+            self, value: int, values: List[int], colors: List[str]) -> None:
         """Create gauge given a value and marks (values).
 
         Args:
@@ -276,7 +276,14 @@ class DashImg:
         self._next_y(2 * self.SECTION_FONT.size + self.SPACER)
 
     def create_gauge_value(self, value: int, offset: int, color: str) -> None:
-        """Create a gauge value (mark)."""
+        """Create a gauge value (mark).
+
+        Args:
+            value (int): a gauge value or marker
+            offset (int): horizontal offset for this current value
+            color (str): color in hex format
+
+        """
         self.draw.text(
             (offset, self.y),
             str(value),
@@ -298,6 +305,9 @@ class DashImg:
             end_a (int): the minimum of the gauge
             end_b (int): the maximum of the gauge
 
+        Returns:
+            int: horizontal pixel offset
+
         """
         length = end_b - end_a
         return (
@@ -307,31 +317,31 @@ class DashImg:
             + self.GAUGE_OFFSET
             )
 
-    def gauge_text_collision(self, val: int, offset: int) -> bool:
+    def gauge_text_collision(self, value: int, offset: int) -> bool:
         """Determine whether new text will collide with existing text.
 
         Specifically, check the magnitude (number of digits) for both
-        val and last_val and check whether they may possibly overlap
+        value and last_val and check whether they may possibly overlap
         in bounding box.
 
-        val should always be greater than or equal to
+        value should always be greater than or equal to
         self.last_gauge_value.
 
         Args:
-            val (int): the current value
+            value (int): the current value
             offset (int): the current value's offset
 
         Returns:
             bool: whether text will collide (True) or not (False)
 
         """
-        width = self.get_number_half_width(val)
+        width = self.get_number_half_width(value)
         last_width = self.get_number_half_width(self.last_gauge_value)
-        config.LOGGER.info(f'value: {val}, last: {self.last_gauge_value}')
+        config.LOGGER.info(f'value: {value}, last: {self.last_gauge_value}')
         config.LOGGER.info(f'width: {width}, last_width: {last_width}')
         return (offset - width) < (self.last_gauge_offset + last_width)
 
-    def gauge_value_text_collision(self, val: int, offset: int) -> bool:
+    def gauge_value_text_collision(self, value: int, offset: int) -> bool:
         """Gauges whether a gauge value may collide with marks.
 
         Because some marks may not have been rendered,
@@ -341,18 +351,22 @@ class DashImg:
         Similar to gauge_text_collision but checks both closest smallest
         and closest largest values.
 
+        Args:
+            value (int): the gauge value
+            offset (int): the current value's offset
+
         Returns:
             bool: whether text will collide (True) or not (False)
 
         """
-        if val in self.created_gauge_values:
+        if value in self.created_gauge_values:
             return True
-        width = self.get_number_half_width(val)
+        width = self.get_number_half_width(value)
         # Not to be confused with dict.values(), these are keys.
         values = list(self.created_gauge_values)
-        values.append(val)
+        values.append(value)
         values.sort()
-        index = values.index(val)
+        index = values.index(value)
         below = values[index - 1]
         above = values[index + 1]
 
