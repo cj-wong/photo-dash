@@ -48,7 +48,7 @@ class PhotoDash(Resource):
             module = f'{self.MODULE_PREFIX}{module}'
         title = r['title']
         sections = r['sections']
-        img = image.DashImg(module, title, sections)
+        img = image.DashImage(module, title, sections)
         try:
             config.LOGGER.info('Attempting image creation')
             img.create()

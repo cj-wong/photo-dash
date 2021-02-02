@@ -46,17 +46,17 @@ def in_quiet_hours() -> bool:
     return False
 
 
-def create_quiet_hours_image() -> image.DashImg:
+def create_quiet_hours_image() -> image.DashImage:
     """Create an image for quiet hours.
 
     This is in case the photo-dash display is turned on before
     intended wake-up.
 
     Returns:
-        image.DashImg: the image created
+        image.DashImage: the image created
 
     """
-    img = image.DashImg('quiet_hours', 'Quiet Hours', _SECTIONS)
+    img = image.DashImage('quiet_hours', 'Quiet Hours', _SECTIONS)
     img.create()
     return img
 

@@ -30,7 +30,7 @@ class TooManySections(BufferError):
 
 
 @dataclass
-class DashImg:
+class DashImage:
     """Represents a photo-dash image.
 
     Attributes:
