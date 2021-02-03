@@ -378,11 +378,11 @@ class SectionGauge(Section):
 
         # Draw the gauge first
         for val, color in zip(self.values, self.colors):
-            offset = self.get_gauge_offset(val, end_a, end_b)
+            offset = self.get_offset(val, end_a, end_b)
 
             if (getattr(self, 'last_gauge_value', None) is None
-                    or not self.does_gauge_text_collide(val, offset)):
-                self.create_gauge_value(val, offset, color)
+                    or not self.does_text_collide(val, offset)):
+                self.create_value(val, offset, color)
 
             c0 = (last_x0, y0)
             c1 = (offset, y1)
@@ -392,8 +392,8 @@ class SectionGauge(Section):
 
             last_x0 = offset
 
-        offset = self.get_gauge_offset(self.value, end_a, end_b)
-        if not self.does_gauge_value_collide(self.value, offset):
+        offset = self.get_offset(self.value, end_a, end_b)
+        if not self.does_value_collide(offset):
             self.instructions.append(
                 (
                     'text',
@@ -423,7 +423,7 @@ class SectionGauge(Section):
 
         self._next_y(2 * SECTION_FONT.size + SPACER)
 
-    def create_gauge_value(self, value: int, offset: int, color: str) -> None:
+    def create_value(self, value: int, offset: int, color: str) -> None:
         """Create a gauge value (mark).
 
         Args:
@@ -448,7 +448,7 @@ class SectionGauge(Section):
         self.last_gauge_offset = offset
         self.created_gauge_values[value] = offset
 
-    def get_gauge_offset(self, value: int, end_a: int, end_b: int) -> int:
+    def get_offset(self, value: int, end_a: int, end_b: int) -> int:
         """Get the current gauge offset.
 
         end_a <= value <= end_b
@@ -470,7 +470,7 @@ class SectionGauge(Section):
             + GAUGE_OFFSET
             )
 
-    def does_gauge_text_collide(self, value: int, offset: int) -> bool:
+    def does_text_collide(self, value: int, offset: int) -> bool:
         """Determine whether new text will collide with existing text.
 
         Specifically, check the magnitude (number of digits) for both
@@ -494,8 +494,8 @@ class SectionGauge(Section):
         config.LOGGER.info(f'width: {width}, last_width: {last_width}')
         return (offset - width) < (self.last_gauge_offset + last_width)
 
-    def does_gauge_value_collide(self, value: int, offset: int) -> bool:
-        """Gauges whether a gauge value may collide with marks.
+    def does_value_collide(self, offset: int) -> bool:
+        """Gauges whether the gauge value may collide with any mark.
 
         Because some marks may not have been rendered,
         self.created_gauge_values is used to ensure collision check with
@@ -512,14 +512,14 @@ class SectionGauge(Section):
             bool: whether text will collide (True) or not (False)
 
         """
-        if value in self.created_gauge_values:
+        if self.value in self.created_gauge_values:
             return True
-        width = self.get_number_half_width(value)
+        width = self.get_number_half_width(self.value)
         # Not to be confused with dict.values(), these are keys.
         values = list(self.created_gauge_values)
-        values.append(value)
+        values.append(self.value)
         values.sort()
-        index = values.index(value)
+        index = values.index(self.value)
         below = values[index - 1]
         above = values[index + 1]
 
