@@ -86,25 +86,10 @@ class DashImage:
     """Represents a photo-dash image.
 
     Attributes:
+        draw (ImageDraw.Draw): the rendering class that draws onto an image
         module (str): the name of the module the image represents
-        title (str): title of the image; goes at the top of the image
         sections (SECTIONS): a response given to the endpoint
-        SPACER (int): how much to space rows of elements
-        FONT (str): the name of the font to use for all text elements
-        TEXT_COLOR (str): color for the title on an image ('#FFFFFF')
-        TITLE_SIZE (int): font size of the title (20)
-        TITLE_FONT (ImageFont.FreeTypeFont): font & size for the title
-        SECTION_SIZE (int): font size for sections (16)
-        SECTION_FONT (ImageFont.FreeTypeFont): font & size for sections
-        FOOTER_SIZE (int): font size of the footer (20)
-        FOOTER_FONT (ImageFont.FreeTypeFont): font & size for the footer
-        MAX_C_PER_LINE (int): maximum characters allowed per line
-        GAUGE_WIDTH (int): how long the gauge bar should be
-        GAUGE_OFFSET (int): how far from the left should the bar start;
-            this number ideally should be (1 - ratio) // 2, where
-            ratio is the decimal that was used to create GAUGE_WIDTH
-        SECTION_SPACING (Dict[str, int]): how much spacing each section
-            creates; e.g. text only needs 1 spacing per line
+        title (str): title of the image; goes at the top of the image
 
     """
 
@@ -113,10 +98,9 @@ class DashImage:
     module: str
     title: str
     sections: SECTIONS
-    # y should not be initialized.
+    # While y should not be initialized, it can be included to offset the image
+    # from the top edge of the canvas.
     y: int = 0
-
-    # Other attributes
 
     def create(self) -> None:
         """Create a new image given parameters.
@@ -226,9 +210,15 @@ class DashImage:
 
 @dataclass
 class Section:
-    """Represents an image section."""
+    """Represents an image section.
 
-    # draw: ImageDraw.Draw # the renderer for the image
+    Attributes:
+        instructions (INSTRUCTIONS): a list of instructions for the rendering
+            command to draw onto the image
+        y (int): the vertical offset from the top edge of the image's canvas
+
+    """
+
     y: int
 
     def __post_init__(self) -> None:
@@ -332,7 +322,23 @@ class SectionFooter(Section):
 
 @dataclass
 class SectionGauge(Section):
-    """Represents a gauge within an image."""
+    """Represents a gauge within an image.
+
+    Attributes:
+        colors (List[str]): a list of hex-format colors that correspond the
+            gauge sequentially
+        created_gauge_values (Dict[float, int]): a dictionary of to-be-rendered
+            gauge marks with keys being the marks and their values being the
+            horizontal offset from the left edge to that given mark
+        last_gauge_offset (int): the offset of the most recent mark that can be
+            rendered successfully; see last_gauge_value
+        last_gauge_value (float): the most recent mark that can be rendered
+            successfully; this value is also the furthest right mark from the
+            left edge
+        value (int): the value within a gauge
+        values (List[int]): a list of numeric marks on the gauge
+
+    """
 
     value: int
     values: List[int]
@@ -347,17 +353,9 @@ class SectionGauge(Section):
             colors (List[int]): color to paint sections between marks
 
         """
-        # try:
-        #     # Delete self.last_gauge_value in case the module creates
-        #     # multiple gauges. This is to replicate prior behavior,
-        #     # `self.last_gauge_value = None` that mypy did not allow.
-        #     del self.last_gauge_value
-        #     del self.last_gauge_offset
-        # except AttributeError:
-        #     pass
         super().__post_init__()
 
-        self.created_gauge_values: Dict = {}
+        self.created_gauge_values: Dict[float, int] = {}
 
         sort_values = sorted(self.values)
         if self.values != sort_values:
@@ -367,7 +365,7 @@ class SectionGauge(Section):
         end_a = sort_values[0]
         end_b = sort_values[-1]
 
-        # The first marker will use the default text color.
+        # The first mark will use the default text color.
         self.colors.insert(0, TEXT_COLOR)
 
         x0 = GAUGE_OFFSET
@@ -427,7 +425,7 @@ class SectionGauge(Section):
         """Create a gauge value (mark).
 
         Args:
-            value (int): a gauge value or marker
+            value (int): a gauge value or mark
             offset (int): horizontal offset for this current value
             color (str): color in hex format
 
@@ -470,7 +468,7 @@ class SectionGauge(Section):
             + GAUGE_OFFSET
             )
 
-    def does_text_collide(self, value: int, offset: int) -> bool:
+    def does_text_collide(self, value: float, offset: int) -> bool:
         """Determine whether new text will collide with existing text.
 
         Specifically, check the magnitude (number of digits) for both
@@ -481,7 +479,7 @@ class SectionGauge(Section):
         self.last_gauge_value.
 
         Args:
-            value (int): the current value
+            value (float): the current value
             offset (int): the current value's offset
 
         Returns:
@@ -505,7 +503,6 @@ class SectionGauge(Section):
         and closest largest values.
 
         Args:
-            value (int): the gauge value
             offset (int): the current value's offset
 
         Returns:
@@ -533,13 +530,13 @@ class SectionGauge(Section):
         return False
 
     def get_number_half_width(self, number: float) -> int:
-        """Get the pixel width of a number determined by the font.
+        """Get half the pixel width of a number determined by the font.
 
         Args:
             number (float): the number to convert to half pixel width
 
         Returns:
-            int: half pixel width of a number, rounded up
+            int: half the pixel width of a number, rounded up
 
         """
         symbols = 0
