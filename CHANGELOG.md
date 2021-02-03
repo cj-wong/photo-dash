@@ -3,16 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.0] - 2021-02-02
+### Changed
+- In [image.py]:
+    - `DashImg` is now `DashImage`.
+    - Issue #3, continued: Individual image sections from `DashImage` are now their own classes, subclassing `Section`.
+        - All sections, now and future, must be decorated with `@dataclass`.
+        - Each section must accept `y` as its first argument and must also override `__post_init__()` and call `super().__post_init__()` on its first line, to ensure the attribute `instructions` will be created.
+        - Each section's `__post_init__()` should contain code that builds rendering instructions for the main `DashImage` class.
+        - As a result of this refactor, all of the non-argument attributes for `DashImage` are now placed module-level for access to all other classes.
+        - `SectionGauge` methods no longer have redundant `_gauge_` in their names.
+        - `SectionGauge.does_value_collide()` no longer accepts `value` as an argument, as it strictly used `SectionGauge.value`. This change will not be applied to `SectionGauge.offset()`, even though one of its calls uses the same attribute, because its other calls use function-local variables.
+
 ## [0.1.8] - 2021-01-22
 ### Changed
 - In [image.py]:
-    - Fixed (missing) documentation.
     - Renamed `DashImg.gauge_text_collision()` to `DashImg.does_gauge_text_collide()` and `DashImg.gauge_value_text_collision()` to `DashImg.does_gauge_value_collide()`.
-    - Changed `val` to `value` in `DashImg.gauge_text_collision()` and `DashImg.gauge_value_text_collision()`.
+    - Changed `val` to `value` in `DashImg.does_gauge_text_collide()` and `DashImg.does_gauge_value_collide()`.
 
 ### Fixed
 - Fixed #3: fixed gauge rendering issues that came as a result of the `mypy` refactor.
     - Both `self.last_gauge_value` and `self.last_gauge_offset` attributes for `DashImg` in [image.py] are now deleted in `DashImg.create_gauge()`, to restore similar behavior prior to the `mypy` refactor.
+- Fixed (missing) documentation in [image.py].
 
 ## [0.1.7] - 2021-01-02
 ### Changed
