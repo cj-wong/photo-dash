@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from math import ceil, floor, log10
 from pathlib import Path
 from textwrap import wrap
-from typing import Any, Dict, List, Mapping, Sequence
+from typing import (
+    Any, Collection, Dict, List, Mapping, Optional, Sequence, Tuple, Union)
 
 import pendulum
 from PIL import Image, ImageDraw, ImageFont
@@ -11,6 +12,57 @@ from photo_dash import config
 
 
 SECTIONS = Sequence[Mapping[str, Any]]
+
+SECTION_SPACING = {
+    'text': 1,
+    'gauge': 2,
+    }
+
+# Spacing: between lines and away from the canvas edges
+SPACER = 10
+V_SPACER = 5
+H_SPACER = 5
+
+# Font-related variables
+FONT = 'DejaVuSansMono.ttf'
+
+TEXT_COLOR = '#FFFFFF' # Does not apply to sections
+TITLE_SIZE = 20
+TITLE_FONT = ImageFont.truetype(font=FONT, size=TITLE_SIZE)
+
+SECTION_SIZE = 16
+SECTION_FONT = ImageFont.truetype(font=FONT, size=SECTION_SIZE)
+# This ratio depends on the current font, FONT.
+SECTION_CHAR = int(16 * 10 / 16)
+
+FOOTER_SIZE = 10
+FOOTER_FONT = ImageFont.truetype(font=FONT, size=FOOTER_SIZE)
+# For a width of 480, SECTION_SIZE of 16, and using a monospace font,
+# 48 chars could fit on one line. As such, MAX_C_PER_LINE can be scaled
+# by dividing configured width by 10.
+# MAX_C_PER_LINE is then subtracted by 2 H_SPACERs rounded up.
+MAX_C_PER_LINE = (
+    config.WIDTH
+    // SECTION_CHAR
+    - ceil(2 * H_SPACER / SECTION_CHAR)
+    )
+
+GAUGE_WIDTH = int(0.9 * config.WIDTH)
+GAUGE_OFFSET = int(0.05 * config.WIDTH)
+GAUGE_VALUE_STROKE = 2
+GAUGE_LINE_WIDTH = 5
+GAUGE_LINE_COLOR = '#808080'
+
+# Render instruction type
+COORDINATES = Union[int, Tuple[int, int]]
+INSTRUCTIONS = List[
+    Tuple[
+        str,
+        Collection[COORDINATES],
+        Optional[str],
+        Dict[str, Union[str, int]]
+        ]
+    ]
 
 
 class TooManySections(BufferError):
@@ -66,52 +118,6 @@ class DashImage:
 
     # Other attributes
 
-    SPACER = 10
-    V_SPACER = 5
-    H_SPACER = 5
-    FONT = 'DejaVuSansMono.ttf'
-
-    TEXT_COLOR = '#FFFFFF' # Does not apply to sections
-    TITLE_SIZE = 20
-    TITLE_FONT = ImageFont.truetype(font=FONT, size=TITLE_SIZE)
-    SECTION_SIZE = 16
-    SECTION_FONT = ImageFont.truetype(font=FONT, size=SECTION_SIZE)
-    # This ratio depends on the current font, DejaVuSansMono.
-    SECTION_CHAR = int(16 * 10 / 16)
-    FOOTER_SIZE = 10
-    FOOTER_FONT = ImageFont.truetype(font=FONT, size=FOOTER_SIZE)
-    # For a width of 480, SECTION_SIZE of 16, and using a monospace font,
-    # 48 chars could fit on one line. As such, MAX_C_PER_LINE can be scaled
-    # by dividing configured width by 10.
-    # MAX_C_PER_LINE is then subtracted by 2 H_SPACERs rounded up.
-    MAX_C_PER_LINE = (
-        config.WIDTH
-        // SECTION_CHAR
-        - ceil(2 * H_SPACER / SECTION_CHAR)
-        )
-
-    GAUGE_WIDTH = int(0.9 * config.WIDTH)
-    GAUGE_OFFSET = int(0.05 * config.WIDTH)
-    GAUGE_VALUE_STROKE = 2
-    GAUGE_LINE_WIDTH = 5
-    GAUGE_LINE_COLOR = '#808080'
-
-    SECTION_SPACING = {
-        'text': 1,
-        'gauge': 2,
-        }
-
-    def _next_y(self, delta: int) -> None:
-        """Get the next value for y given a delta.
-
-        To prevent vertical clutter, a small value will also pad y.
-
-        Args:
-            delta (int): amount to increase y
-
-        """
-        self.y += delta + self.SPACER
-
     def create(self) -> None:
         """Create a new image given parameters.
 
@@ -122,33 +128,51 @@ class DashImage:
         if not self.sections_fit():
             raise TooManySections(len(self.sections))
 
-        self.dt = pendulum.now()
+        with Image.new('RGB', config.CANVAS) as im:
+            self.draw = ImageDraw.Draw(im)
 
-        with Image.new('RGB', config.CANVAS) as self.im:
-            self.draw = ImageDraw.Draw(self.im)
-            self.create_text(self.title, self.TEXT_COLOR, self.TITLE_FONT)
+            header = SectionText(self.y, self.title, TEXT_COLOR, TITLE_FONT)
+            self.render_instructions(header.get_instructions())
+            self.y = header.y
+
             for section in self.sections:
                 try:
                     section_type = section['type']
+                    value = section['value']
+                    color = section['color']
+
                     if section_type == 'text':
-                        color = section['color']
-                        text = section['value']
-                        self.create_text(text, color, self.SECTION_FONT)
+                        text = SectionText(self.y, value, color, SECTION_FONT)
+                        y = text.y
+                        instructions = text.get_instructions()
                     elif section_type == 'gauge':
                         colors = section['color']
                         values = section['range']
-                        value = section['value']
-                        self.create_gauge(value, values, colors)
+                        gauge = SectionGauge(self.y, value, values, colors)
+                        y = gauge.y
+                        instructions = gauge.get_instructions()
+
+                    self.render_instructions(instructions)
+                    self.y = y
+
                 except KeyError as e:
                     config.LOGGER.warning(
-                        'Could not determine type of section. Skipping.'
-                        )
+                        'The section is malformed. Skipping...')
                     config.LOGGER.warning(f'Module: {self.module}')
                     config.LOGGER.warning(f'More info: {e}')
                     continue
-            self.create_footer()
+                except NameError as e:
+                    config.LOGGER.warning(
+                        'Could not determine type of section. Skipping...')
+                    config.LOGGER.warning(f'Module: {self.module}')
+                    config.LOGGER.warning(f'More info: {e}')
+                    continue
+
+            footer = SectionFooter(self.y)
+            self.render_instructions(footer.get_instructions())
+
             self.dest = config.DEST / f'{self.module}.jpg'
-            self.im.save(self.dest, quality=85)
+            im.save(self.dest, quality=85)
 
     def delete(self) -> None:
         """Delete the image. This is mostly used for quiet hour images."""
@@ -166,43 +190,155 @@ class DashImage:
         space = 0
         for section in self.sections:
             if section['type'] == 'text':
-                lines = len(wrap(section['value'], width=self.MAX_C_PER_LINE))
-                space += lines * self.SECTION_SPACING[section['type']]
+                lines = len(wrap(section['value'], width=MAX_C_PER_LINE))
+                space += lines * SECTION_SPACING[section['type']]
             else:
-                space += self.SECTION_SPACING[section['type']]
-            space += self.SPACER
-        space -= self.SPACER
+                space += SECTION_SPACING[section['type']]
+            space += SPACER
+        space -= SPACER
         free_space = (
             config.LENGTH
-            - (self.TITLE_SIZE + self.SPACER)
-            - (self.FOOTER_SIZE + 2 * self.SPACER) # Add extra padding
-            - (2 * self.V_SPACER) # Additional vertical spacers
+            - (TITLE_SIZE + SPACER)
+            - (FOOTER_SIZE + 2 * SPACER) # Add extra padding
+            - (2 * V_SPACER) # Additional vertical spacers
             )
         return free_space > space
 
-    def create_text(
-            self, text: str, color: str, font: ImageFont.FreeTypeFont) -> None:
-        """Create text and insert into drawing.
+    def render_instructions(self, instructions: INSTRUCTIONS) -> None:
+        """Render the instructions onto the image.
 
         Args:
-            text (str): contents of the string
-            color (str): color in hex format
-            font (ImageFont.FreeTypeFont): the font & size used for the text
+            instructions (INSTRUCTIONS): a list of instructions
 
         """
-        if font == self.TITLE_FONT:
-            self.y += self.V_SPACER
-        for line in wrap(text, width=self.MAX_C_PER_LINE):
-            self.draw.text(
-                (self.H_SPACER, self.y),
-                line,
-                fill=color,
-                font=font,
-                )
-            self._next_y(font.size)
+        for instruction in instructions:
+            command, coordinates, text, kwargs = instruction
+            try:
+                method = getattr(self.draw, command)
+            except AttributeError:
+                config.LOGGER.error(f'No such method {method}.')
+                continue
+            if command == 'text':
+                method(coordinates, text, **kwargs)
+            else:
+                method(coordinates, **kwargs)
 
-    def create_gauge(
-            self, value: int, values: List[int], colors: List[str]) -> None:
+
+@dataclass
+class Section:
+    """Represents an image section."""
+
+    # draw: ImageDraw.Draw # the renderer for the image
+    y: int
+
+    def __post_init__(self) -> None:
+        """After initialization, create a list of rendering instructions.
+
+        An individual instruction is like so:
+
+            1. (str) type of render instruction for ImageDraw.Draw
+            2. (Tuple[int, int]) a x, y coordinate for the starting point of
+               the render
+            3. (str, None) text if required for section
+            4. (Dict[str, Union[str, int]]): kwargs for the render instruction
+
+        """
+        self.instructions: INSTRUCTIONS = []
+
+    def _next_y(self, delta: int) -> None:
+        """Get the next value for y given a delta.
+
+        To prevent vertical clutter, a small value (SPACER) will also pad y.
+
+        Args:
+            delta (int): amount to increase y
+
+        """
+        self.y += delta + SPACER
+
+    def get_instructions(self) -> INSTRUCTIONS:
+        """Return the current instructions.
+
+        Returns:
+            INSTRUCTIONS: the instructions to be sent to the renderer
+
+        """
+        return self.instructions
+
+
+@dataclass
+class SectionText(Section):
+    """Represents a text element on one line.
+
+    Attributes:
+        text (str): contents of the string
+        color (str): color in hex format
+        font (ImageFont.FreeTypeFont): the font & size used for the text
+
+    """
+
+    text: str
+    color: str
+    font: ImageFont.FreeTypeFont
+
+    def __post_init__(self) -> None:
+        """Create text and insert into drawing."""
+        super().__post_init__()
+        if self.font == TITLE_FONT:
+            self.y += V_SPACER
+        for line in wrap(self.text, width=MAX_C_PER_LINE):
+            self.instructions.append(
+                (
+                    'text',
+                    (H_SPACER, self.y),
+                    line,
+                    {'fill': self.color, 'font': self.font}
+                    )
+                )
+            self._next_y(self.font.size)
+
+
+@dataclass
+class SectionFooter(Section):
+    """Represents a specialized text element at the bottom of the image.
+
+    Currently contains the date.
+
+    Unlike other sections, the vertical offset is not required, because
+    the footer is rendered relative to the bottom right corner of the canvas.
+    Because of this characteristic, the footer also does not need to inherit
+    from the Section parent class.
+
+    """
+
+    def __post_init__(self) -> None:
+        """Create footer (text) for this image.
+
+        Footers currently only contain the date and time.
+
+        """
+        super().__post_init__()
+        dt = pendulum.now()
+        message = f'Generated at: {dt.to_datetime_string()}'
+        self.instructions.append(
+            (
+                'text',
+                (config.WIDTH - H_SPACER, config.LENGTH - V_SPACER),
+                message,
+                {'fill': TEXT_COLOR, 'font': FOOTER_FONT, 'anchor': 'rs'}
+                )
+            )
+
+
+@dataclass
+class SectionGauge(Section):
+    """Represents a gauge within an image."""
+
+    value: int
+    values: List[int]
+    colors: List[str]
+
+    def __post_init__(self) -> None:
         """Create gauge given a value and marks (values).
 
         Args:
@@ -211,36 +347,37 @@ class DashImage:
             colors (List[int]): color to paint sections between marks
 
         """
-        try:
-            # Delete self.last_gauge_value in case the module creates
-            # multiple gauges. This is to replicate prior behavior,
-            # `self.last_gauge_value = None` that mypy did not allow.
-            del self.last_gauge_value
-            del self.last_gauge_offset
-        except AttributeError:
-            pass
+        # try:
+        #     # Delete self.last_gauge_value in case the module creates
+        #     # multiple gauges. This is to replicate prior behavior,
+        #     # `self.last_gauge_value = None` that mypy did not allow.
+        #     del self.last_gauge_value
+        #     del self.last_gauge_offset
+        # except AttributeError:
+        #     pass
+        super().__post_init__()
 
         self.created_gauge_values: Dict = {}
 
-        sort_values = sorted(values)
-        if values != sort_values:
+        sort_values = sorted(self.values)
+        if self.values != sort_values:
             config.LOGGER.warning('The values were unsorted.')
-            config.LOGGER.warning(f'Module: {self.module}')
-            config.LOGGER.warning(f'Values: {values}')
+            # config.LOGGER.warning(f'Module: {self.module}')
+            config.LOGGER.warning(f'Values: {self.values}')
         end_a = sort_values[0]
         end_b = sort_values[-1]
 
         # The first marker will use the default text color.
-        colors.insert(0, self.TEXT_COLOR)
+        self.colors.insert(0, TEXT_COLOR)
 
-        x0 = self.GAUGE_OFFSET
-        y0 = self.y + self.SECTION_FONT.size + self.SPACER
-        y1 = y0 + self.SECTION_FONT.size
+        x0 = GAUGE_OFFSET
+        y0 = self.y + SECTION_FONT.size + SPACER
+        y1 = y0 + SECTION_FONT.size
 
         last_x0 = x0
 
         # Draw the gauge first
-        for val, color in zip(values, colors):
+        for val, color in zip(self.values, self.colors):
             offset = self.get_gauge_offset(val, end_a, end_b)
 
             if (getattr(self, 'last_gauge_value', None) is None
@@ -250,30 +387,41 @@ class DashImage:
             c0 = (last_x0, y0)
             c1 = (offset, y1)
 
-            self.draw.rectangle(
-                [c0, c1],
-                fill=color,
-                )
+            self.instructions.append(
+                ('rectangle', (c0, c1), None, {'fill': color}))
+
             last_x0 = offset
 
-        offset = self.get_gauge_offset(value, end_a, end_b)
-        if not self.does_gauge_value_collide(value, offset):
-            self.draw.text(
-                (offset, self.y),
-                str(value),
-                fill=self.TEXT_COLOR,
-                font=self.SECTION_FONT,
-                anchor='mt',
-                stroke_width=self.GAUGE_VALUE_STROKE,
-                stroke_fill=self.GAUGE_LINE_COLOR,
+        offset = self.get_gauge_offset(self.value, end_a, end_b)
+        if not self.does_gauge_value_collide(self.value, offset):
+            self.instructions.append(
+                (
+                    'text',
+                    (offset, self.y),
+                    str(self.value),
+                    {
+                        'fill': TEXT_COLOR,
+                        'font': SECTION_FONT,
+                        'anchor': 'mt',
+                        'stroke_width': GAUGE_VALUE_STROKE,
+                        'stroke_fill': GAUGE_LINE_COLOR,
+                        }
+                    )
                 )
-        self.draw.line(
-            [(offset, y0), (offset, y1)],
-            fill=self.GAUGE_LINE_COLOR,
-            width=self.GAUGE_LINE_WIDTH,
+
+        self.instructions.append(
+            (
+                'line',
+                ((offset, y0), (offset, y1)),
+                None,
+                {
+                    'fill': GAUGE_LINE_COLOR,
+                    'width': GAUGE_LINE_WIDTH,
+                    }
+                )
             )
 
-        self._next_y(2 * self.SECTION_FONT.size + self.SPACER)
+        self._next_y(2 * SECTION_FONT.size + SPACER)
 
     def create_gauge_value(self, value: int, offset: int, color: str) -> None:
         """Create a gauge value (mark).
@@ -284,12 +432,17 @@ class DashImage:
             color (str): color in hex format
 
         """
-        self.draw.text(
-            (offset, self.y),
-            str(value),
-            fill=color,
-            font=self.SECTION_FONT,
-            anchor='mt',
+        self.instructions.append(
+            (
+                'text',
+                (offset, self.y),
+                str(value),
+                {
+                    'fill': color,
+                    'font': SECTION_FONT,
+                    'anchor': 'mt',
+                    }
+                )
             )
         self.last_gauge_value = value
         self.last_gauge_offset = offset
@@ -312,9 +465,9 @@ class DashImage:
         length = end_b - end_a
         return (
             (value - end_a)
-            * self.GAUGE_WIDTH
+            * GAUGE_WIDTH
             // length
-            + self.GAUGE_OFFSET
+            + GAUGE_OFFSET
             )
 
     def does_gauge_text_collide(self, value: int, offset: int) -> bool:
@@ -402,19 +555,4 @@ class DashImage:
             digits = floor(log10(number)) + 1
         else:
             digits = 1
-        return ceil((digits + symbols) * self.SECTION_CHAR / 2)
-
-    def create_footer(self) -> None:
-        """Create footer (text) for this image.
-
-        Footers currently only contain the date and time.
-
-        """
-        message = f'Generated at: {self.dt.to_datetime_string()}'
-        self.draw.text(
-            (config.WIDTH - self.H_SPACER, config.LENGTH - self.V_SPACER),
-            message,
-            fill=self.TEXT_COLOR,
-            font=self.FOOTER_FONT,
-            anchor='rs',
-            )
+        return ceil((digits + symbols) * SECTION_CHAR / 2)
