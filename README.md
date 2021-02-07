@@ -11,22 +11,27 @@ The `photo-dash` project is a series of modules and an endpoint. This repository
 
 Each module should be named like so: `photo-dash-module`. Each module should send a put request to the REST API to create or update images. The data format for these images is documented [here](docs/DATA.md).
 
-Although this project focuses on a specific, generic frame ([Leed's] 1690-32BK), it may be possible to adapt the configurations for other dumb digital photo frames. This photo frame in particular has a full SD card slot and a USB A input slot. Both serve only as storage inputs; the frame cannot interact directly with a computer. More specifications are below; use them to adapt other frames for the project as necessary.
+Although this project focuses on a specific, generic frame ([Leed's] 1690-32BK), it may be possible to adapt the configurations for other dumb digital photo frames. This photo frame in particular has a full SD card slot and a USB A input slot. Both serve only as storage inputs; the frame can't directly interact or be modified with a computer. Other specifications to this frame are below; use them to adapt other frames for the project as necessary.
 
 Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve as the endpoint. It will connect to the photo frame via USB A (using its `USB` receptacle, not its `PWR` receptacle) and act as a mass storage device. This [guide][USBGUIDE] from [the Raspberry Pi Foundation][RPI] is very helpful for setting up a USB (OTG) gadget to simulate a flash drive.
 
-**Although not required, I recommend using the guide and the above setup for the project.** I also recommend creating a data-only cable (details in the guide), as it means the SBC can be run independently of the photo frame. Also, because this is an endpoint to automatically generate images, you do not need to follow step 11 (Samba setup) in the guide.
+### Recommendations
+
+- **Although not required, I recommend following the guide and using the above setup for the project.**
+- I recommend creating a data-only cable (detailed in the guide), as it means the SBC can be run independently of the photo frame.
+- Because this project is a net-accessible endpoint that automatically generates images, you do not need to follow step 11 (Samba setup) in the guide.
+- Regarding kernel updates (if applicable), e.g. through `apt upgrade`, make sure to restart the device after upgrading to reload the module, or **the endpoint won't work**.
 
 ## 1690-32BK specifications
 
 ### Images
 
-- Image resolution: 480x234.
+- Image resolution: 480 x 234
 - PNG is not supported. *(Test image formats: transparent PNG, JPG)*
 - Images that can render successfully are centered on both axes.
 - Images smaller than the given resolution on at least one axis aren't scaled, so they are letterboxed the axes longer than the image.
-- Images slightly larger than the given resolution will be scaled down and fitted in full, regardless of aspect ratio. For example, given the 1000x1000 image (aspect ratio 1:1), its resulting image will appear as 480x234 (aspect ratio 80:39 or approximately 2:1). *(Test image resolution: 1000x1000)*
-- Images much larger than the given resolution will be ignored and not shown. It is unclear whether image resolution or file size (or both) are responsible for this mechanism. Regardless, large images cannot work. *(Test image resolution: 12000x1000)*
+- Images slightly larger than the given resolution will be scaled down and fitted in full, regardless of aspect ratio. For example, given the 1000 x 1000 image (aspect ratio 1:1), its resulting image will appear as 480 x 234 (aspect ratio 80:39 or approximately 2:1). *(Test image resolution: 1000 x 1000)*
+- Images much larger than the given resolution will be ignored and not shown. It is unclear whether image resolution or file size (or both) are responsible for this mechanism. Regardless, large images cannot work. *(Test image resolution: 12000 x 1000)*
 
 ### Functionality
 
@@ -40,11 +45,11 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve 
 ## Mitigations to limitations
 
 - Images must be JPG. If your frame supports other extensions, feel free to change this in `photo_dash.image.DashImg.create`; the line is `self.dest = config.DEST / f'{self.module}.jpg'`.
-- Images output from `photo_dash.image.DashImg` will be constrained to the resolution configured (default: 480x234).
+- Images output from `photo_dash.image.DashImg` will be constrained to the resolution configured (default: 480 x 234).
 - The visible area is a little reduced from its expected image resolution, probably due to the underlying display being partially obscured by the enclosure. To compensate for these cut borders, `photo_dash.image.DashImg` has two attributes that change offset from the outer edge: `H_SPACER` (horizontal) and `V_SPACER` (vertical). Both spacers will apply on two sides each: top and bottom for `V_SPACER` and left and right for `H_SPACER`. **If your frame does not have this issue, feel free to leave both spacers at 0.**
 - A slideshow option is required for full functionality, even when not using the exact photo frame described above.
 - Regarding images staying in memory, consequently when quiet hours are enabled and active, images from the last update will still be present. To mitigate this issue (or rather, make its quiet hours status known) when the frame may be on, you may run [utils_runner.py](utils_runner.py). See [Usage](#usage) for more details.
-- The font must be monospace. It is difficult to determine pixel width for characters (and hence, a line of characters) in a non-monospace font, and sections become unwieldy to calculate without assuming monospace. If you replace the font, create a test image with more than the expected maximum number of characters per line with the font size `SECTION_SIZE` (in `photo_dash.image.DashImg`), count the maximum rendered characters, and change `SECTION_CHAR` to this value. *A test image creator may be developed later to accomodate this setup process.*
+- The font must be monospace. It is difficult to determine pixel width for characters (and hence, a line of characters) in a non-monospace font, and sections become unwieldy to calculate without assuming monospace. If you replace the font, create a test image with more than the expected maximum number of characters per line with the font size `SECTION_SIZE` (in `photo_dash.image.DashImg`), count the maximum rendered characters, and change `SECTION_CHAR` to this value. *A test image creator may be developed later to accommodate this setup process.*
 - Another reason why a monospace font is required: When rendering gauges, some numbers may be omitted if they cannot be rendered without obscuring an existing number. Since gauge markers are sorted from lowest to highest and their anchors are mid-aligned, each marker must check how far it is from its closest left neighbor (with half of its neighbor's width calculated). If the marker does not have enough space, it will not be rendered. Gauge values are also subject to this (including space from its nearest right neighbor), although gauge value lines will still be rendered regardless.
 - If you are using the guide (specifically the kernel module `g_mass_storage`), in order for the endpoint to properly work after a reboot, I recommend adding the `modprobe` command (without `modprobe`) from the guide into a separate file under `/etc/modules-load.d`. Otherwise, you may have to manually update the kernel module (`g_mass_storage`).
 - The USB gadget must be FAT32 to avoid any unforeseen problems. The *Raspberry Pi Foundation* guide mounts the simulated storage as FAT32.
@@ -53,6 +58,7 @@ Similarly, this project focuses on a SBC ([Raspberry Pi Zero W][RPIZ]) to serve 
 
 ## Usage
 
+0. Clone the project. A virtual environment is highly recommended for managing the project and isolating its dependencies.
 1. [Setup](#setup) [config.json](config.json.example) by copying the example file and renaming it. `"width"` and `"length"` must be integers. `"destination"` must be a string that can be parsed as a path using `pathlib.Path`. (Both relative and absolute paths can work here.)
 2. Run [photo_dash/app.py](photo_dash/app.py), preferably with `gunicorn` (provided in [requirements.txt](requirements.txt)). The endpoint does not do anything on its own; use modules to send data to convert to a `photo-dash` image.
 3. (Optional) Run [utils_runner.py](utils_runner.py) for extra utilities. Currently, this includes creating an image with text that describes quiet hours when in effect. The script should be run in background, preferably with any init system provided by the operating system.
