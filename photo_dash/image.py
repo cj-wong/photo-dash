@@ -116,7 +116,7 @@ class DashImage:
             self.draw = ImageDraw.Draw(im)
 
             header = SectionText(self.y, self.title, TEXT_COLOR, TITLE_FONT)
-            self.render_instructions(header.get_instructions())
+            self.render_instructions(header.instructions)
             self.y = header.y
 
             for section in self.sections:
@@ -128,13 +128,13 @@ class DashImage:
                     if section_type == 'text':
                         text = SectionText(self.y, value, color, SECTION_FONT)
                         y = text.y
-                        instructions = text.get_instructions()
+                        instructions = text.instructions
                     elif section_type == 'gauge':
                         colors = section['color']
                         values = section['range']
                         gauge = SectionGauge(self.y, value, values, colors)
                         y = gauge.y
-                        instructions = gauge.get_instructions()
+                        instructions = gauge.instructions
 
                     self.render_instructions(instructions)
                     self.y = y
@@ -153,7 +153,7 @@ class DashImage:
                     continue
 
             footer = SectionFooter(self.y)
-            self.render_instructions(footer.get_instructions())
+            self.render_instructions(footer.instructions)
 
             self.dest = config.DEST / f'{self.module}.jpg'
             im.save(self.dest, quality=85)
@@ -245,15 +245,6 @@ class Section:
 
         """
         self.y += delta + SPACER
-
-    def get_instructions(self) -> INSTRUCTIONS:
-        """Return the current instructions.
-
-        Returns:
-            INSTRUCTIONS: the instructions to be sent to the renderer
-
-        """
-        return self.instructions
 
 
 @dataclass
