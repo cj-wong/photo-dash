@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.5] - 2021-04-06
+### Security
+- Fixed security alert for `urllib3`.
+- Updated `requests`.
+
 ## [0.2.4] - 2021-03-21
 ### Changed
 - In [image.py], `Section.get_instructions()` was replaced with the more Pythonic direct access (i.e. `Section.instructions`).
